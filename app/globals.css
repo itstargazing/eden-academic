@@ -23,35 +23,6 @@
 body {
   background-color: var(--background);
   color: var(--text-primary);
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  touch-action: manipulation;
-  overflow-x: hidden;
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-  width: 100%;
-}
-
-/* Fix for mobile viewport height */
-html {
-  height: -webkit-fill-available;
-}
-
-/* Ensure proper button sizing on mobile */
-button, 
-.btn,
-[role="button"] {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
-  min-height: 44px; /* Minimum touch target size */
-  min-width: 44px;
-}
-
-/* Prevent text scaling */
-* {
-  -webkit-text-size-adjust: none;
-  text-size-adjust: none;
 }
 
 /* Add custom scrollbar */
