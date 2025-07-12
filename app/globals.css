@@ -4,6 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent text size adjustment on orientation changes */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
 :root {
   --background: #1E1E1E;
   --background-light: #2A2A2A;
@@ -19,10 +26,45 @@
   --font-jetbrains: var(--font-jetbrains);
 }
 
-/* Set dark mode by default */
+/* Set dark mode by default and ensure proper scaling */
 body {
   background-color: var(--background);
   color: var(--text-primary);
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  width: 100%;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fix for mobile Safari */
+@supports (-webkit-touch-callout: none) {
+  body {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Ensure buttons and interactive elements are properly sized for touch */
+button, 
+a, 
+input, 
+select, 
+textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Minimum touch target size */
+@media (max-width: 768px) {
+  button, 
+  a, 
+  input[type="button"], 
+  input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.5rem;
+  }
 }
 
 /* Add custom scrollbar */

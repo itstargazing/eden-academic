@@ -40,6 +40,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  minimumScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   themeColor: '#000000',
 };
 
@@ -73,9 +76,9 @@ export default async function RootLayout({
       </head>
       <body className={`${inter.className} ${jetbrainsMono.variable} bg-background text-text-primary antialiased`}>
         <Providers session={session}>
-          <div className="flex min-h-screen">
+          <div className="flex min-h-screen flex-col sm:flex-row">
             <Sidebar />
-            <main className="flex-1 lg:ml-[250px] p-4 lg:p-8">
+            <main className="flex-1 w-full lg:ml-[250px] p-4 lg:p-8 overflow-x-hidden">
               <PageTransition>
                 {children}
               </PageTransition>
