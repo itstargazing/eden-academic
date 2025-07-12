@@ -7,7 +7,6 @@ import {
   Calendar, CheckCircle
 } from 'lucide-react';
 import { useUserStore } from '../store/user-store';
-import LogoSplash from '../components/ui/logo-splash';
 import Introduction from '../components/ui/introduction';
 
 const tools = [
@@ -68,8 +67,7 @@ const tools = [
 ];
 
 export default function HomePage() {
-  const [showLogoSplash, setShowLogoSplash] = useState(true);
-  const [showIntroduction, setShowIntroduction] = useState(false);
+  const [showIntroduction, setShowIntroduction] = useState(true);
   const [cursorVisible, setCursorVisible] = useState(true);
   const { 
     isLoggedIn, 
@@ -87,19 +85,10 @@ export default function HomePage() {
 
   // Reset states when component mounts
   useEffect(() => {
-    setShowLogoSplash(true);
-    setShowIntroduction(false);
+    setShowIntroduction(true);
   }, []);
-
-  // First show the logo splash page
-  if (showLogoSplash) {
-    return <LogoSplash onDiscover={() => {
-      setShowLogoSplash(false);
-      setShowIntroduction(true);
-    }} />;
-  }
   
-  // Then show the introduction with features
+  // Show the introduction with features
   if (showIntroduction) {
     return <Introduction onComplete={() => setShowIntroduction(false)} />;
   }
@@ -174,7 +163,7 @@ export default function HomePage() {
                 </div>
                 <span>{session.duration}m left</span>
               </div>
-        </div>
+            </div>
           ))}
         </section>
       )}
