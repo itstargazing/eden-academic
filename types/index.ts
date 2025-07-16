@@ -2,7 +2,7 @@
 export interface Citation {
   id: string;
   text: string;
-  format: 'APA' | 'MLA' | 'Chicago' | 'IEEE';
+  format: 'APA' | 'MLA' | 'Chicago' | 'IEEE' | 'Harvard';
   source: string;
   date: Date;
 }
