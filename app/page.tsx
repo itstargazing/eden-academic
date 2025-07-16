@@ -87,8 +87,7 @@ export default function HomePage() {
 
   // Reset states when component mounts
   useEffect(() => {
-    setShowLogoSplash(true);
-    setShowIntroduction(false);
+    // Remove this effect as it's redundant with the initial state
   }, []);
 
   // First show the logo splash page

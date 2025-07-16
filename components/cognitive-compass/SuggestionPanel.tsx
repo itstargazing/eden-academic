@@ -36,7 +36,7 @@ export default function SuggestionPanel({ profile, pulseData }: SuggestionPanelP
   };
 
   return (
-    <div className="space-y-6 p-6 bg-background/50 rounded-lg border border-white/10">
+    <div className="space-y-6 p-6 bg-background rounded-lg border border-white/10">
       <h3 className="text-xl font-semibold text-white">Smart Suggestions</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

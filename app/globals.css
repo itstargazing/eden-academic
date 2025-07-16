@@ -5,24 +5,93 @@
 @tailwind utilities;
 
 :root {
-  --background: #1E1E1E;
-  --background-light: #2A2A2A;
-  --primary: #252525;
-  --primary-light: #2F2F2F;
-  --primary-dark: #1A1A1A;
-  --accent: #4A7856;
-  --accent-light: #88BDBC;
-  --accent-secondary: #88BDBC;
-  --highlight: #FFCB77;
-  --text-primary: #F5F5F5;
-  --text-secondary: #B8B8B8;
+  --background: #000000;
+  --background-light: #000000;
+  --primary: #000000;
+  --primary-light: #000000;
+  --primary-dark: #000000;
+  --accent: #ffffff;
+  --accent-light: #ffffff;
+  --accent-secondary: #ffffff;
+  --highlight: #ffffff;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
   --font-jetbrains: var(--font-jetbrains);
+  --font-unbounded: var(--font-unbounded);
+  --sidebar-width: 250px;
 }
 
 /* Set dark mode by default */
 body {
   background-color: var(--background);
   color: var(--text-primary);
+  font-family: 'Jost', sans-serif;
+}
+
+/* Responsive sidebar layout */
+@media (max-width: 1023px) {
+  :root {
+    --sidebar-width: 0px;
+  }
+}
+
+/* Terminal cursor blink animation */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.terminal-cursor {
+  animation: blink 1s infinite;
+}
+
+/* Glitch effect for cyber aesthetic */
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+.glitch-effect {
+  animation: glitch 0.3s infinite;
+}
+
+/* Terminal typing effect */
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.typing-effect {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid #ffffff;
+  animation: typing 2s steps(40, end), blink 1s infinite step-end;
+}
+
+/* Matrix-style falling text */
+@keyframes matrix-fall {
+  0% { transform: translateY(-100vh); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+.matrix-text {
+  animation: matrix-fall 4s linear infinite;
+}
+
+/* Scanline effect */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.scanline {
+  animation: scanline 2s linear infinite;
 }
 
 /* Add custom scrollbar */
@@ -32,16 +101,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--primary-dark);
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent);
-  border-radius: 4px;
+  background: #ffffff;
+  border-radius: 0px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-light);
+  background: #cccccc;
 }
 
 /* Smooth focus transitions */
@@ -50,285 +119,261 @@ body {
   transition: all 0.2s ease-in-out;
 }
 
-/* Custom focus ring */
 *:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
 
-/* Animation for loading spinners */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-}
-  to {
-    transform: rotate(360deg);
-  }
+/* Terminal styling - only for specific terminal elements */
+.terminal-prompt {
+  color: #ffffff;
+  font-family: var(--font-jetbrains), monospace;
 }
 
-.animate-spin {
-  animation: spin 1s linear infinite;
+.terminal-command {
+  color: #ffffff;
+  font-family: var(--font-jetbrains), monospace;
 }
 
-/* EDEN text animation */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.terminal-output {
+  color: #cccccc;
+  font-family: var(--font-jetbrains), monospace;
 }
 
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+.terminal-link {
+  color: #ffffff;
+  text-decoration: underline;
+  font-family: var(--font-jetbrains), monospace;
 }
 
-@keyframes typewriter {
-  from { width: 0; }
-  to { width: 100%; }
+.terminal-link:hover {
+  background-color: #ffffff;
+  color: #000000;
 }
 
-/* Progress bar animation */
-@keyframes progress {
-  from { width: 0; }
-  to { width: 100%; }
+/* Unbounded font utility */
+.font-unbounded {
+  font-family: var(--font-unbounded), sans-serif;
 }
 
-/* Component utility classes */
+/* Cyber button styles - only for landing page */
+.cyber-button {
+  background: transparent;
+  border: 1px solid #ffffff;
+  color: #ffffff;
+  padding: 8px 16px;
+  font-family: var(--font-jetbrains), monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cyber-button:hover {
+  background: #ffffff;
+  color: #000000;
+  box-shadow: 0 0 20px #ffffff;
+}
+
+.cyber-button:active {
+  transform: scale(0.98);
+}
+
+/* Ensure button text is always visible */
+.discover-btn {
+  background: transparent !important;
+  border: 2px solid #ffffff !important;
+  color: #ffffff !important;
+  font-weight: bold !important;
+}
+
+.discover-btn:hover {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Cyber input styles */
+.cyber-input {
+  background: transparent;
+  border: 1px solid #ffffff;
+  color: #ffffff;
+  padding: 8px 12px;
+  font-family: var(--font-jetbrains), monospace;
+  outline: none;
+}
+
+.cyber-input:focus {
+  box-shadow: 0 0 10px #ffffff;
+}
+
+.cyber-input::placeholder {
+  color: #666666;
+}
+
+/* Essential component styles for pages to work */
 @layer components {
-  /* Card with proper contrast */
+  /* Card with normal styling */
   .card {
-    @apply bg-primary rounded-lg border border-accent/10 p-6;
+    background: #000000;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+    padding: 24px;
+    font-family: 'Jost', sans-serif;
   }
-  
-  /* Input fields */
-  .input {
-    @apply w-full px-4 py-2 bg-primary-light rounded-md border border-white/10 
-    focus:border-accent focus:outline-none text-text-primary placeholder:text-text-secondary;
-}
 
-  /* Buttons */
+  /* Input fields with normal styling */
+  .input {
+    width: 100%;
+    padding: 12px 16px;
+    background: #000000;
+    border: 1px solid #ffffff;
+    border-radius: 6px;
+    color: #ffffff;
+    font-family: 'Jost', sans-serif;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .input:focus {
+    box-shadow: 0 0 10px #ffffff;
+    border-color: #ffffff;
+  }
+
+  .input::placeholder {
+    color: #666666;
+  }
+
+  /* Buttons with normal styling */
   .btn {
-    @apply px-4 py-2 rounded-md transition-colors border border-white/20 bg-transparent text-white hover:bg-white/10;
+    padding: 8px 16px;
+    border: 1px solid #ffffff;
+    background: transparent;
+    color: #ffffff;
+    font-family: 'Jost', sans-serif;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-radius: 6px;
   }
-  
+
+  .btn:hover {
+    background: #ffffff;
+    color: #000000;
+    box-shadow: 0 0 10px #ffffff;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .btn-primary {
-    @apply border-white/40 text-white hover:border-white hover:bg-white/10;
+    border-color: #ffffff;
+    color: #ffffff;
   }
-  
+
+  .btn-primary:hover {
+    background: #ffffff;
+    color: #000000;
+  }
+
   .btn-secondary {
-    @apply border-white/20 text-white/80 hover:text-white hover:border-white/40 hover:bg-white/5;
+    border-color: #cccccc;
+    color: #cccccc;
   }
-  
+
+  .btn-secondary:hover {
+    background: #cccccc;
+    color: #000000;
+  }
+
   /* Icons with background */
   .icon-container {
-    @apply p-2 rounded-full bg-background border border-accent/10;
+    padding: 8px;
+    background: #000000;
+    border: 1px solid #ffffff;
+    border-radius: 6px;
   }
-  
+
   /* Section headers */
   .section-title {
-    @apply text-lg font-medium text-text-primary mb-4;
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 16px;
+    font-family: 'Jost', sans-serif;
   }
 
   /* Page header */
   .page-header {
-    @apply text-2xl font-semibold text-text-primary;
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: 'Jost', sans-serif;
   }
 
-  /* Highlight utility classes */
-  .bg-highlight {
-    background-color: var(--highlight);
+  /* Text colors */
+  .text-text-primary {
+    color: #ffffff;
   }
 
-  .bg-highlight\/10 {
-    background-color: color-mix(in srgb, var(--highlight) 10%, transparent);
+  .text-text-secondary {
+    color: #cccccc;
   }
 
-  .bg-highlight\/20 {
-    background-color: color-mix(in srgb, var(--highlight) 20%, transparent);
+  /* Background colors */
+  .bg-background {
+    background-color: #000000;
   }
 
-  .bg-highlight\/30 {
-    background-color: color-mix(in srgb, var(--highlight) 30%, transparent);
+  .bg-background-light {
+    background-color: #111111;
   }
 
-  .bg-highlight\/90 {
-    background-color: color-mix(in srgb, var(--highlight) 90%, transparent);
+  .bg-primary {
+    background-color: #000000;
   }
 
-  .text-highlight {
-    color: var(--highlight);
+  .bg-primary-light {
+    background-color: #1a1a1a;
   }
 
-  .border-highlight {
-    border-color: var(--highlight);
+  /* Accent colors */
+  .text-accent {
+    color: #ffffff;
   }
 
-  .hover\:bg-highlight\/90:hover {
-    background-color: color-mix(in srgb, var(--highlight) 90%, transparent);
+  .bg-accent {
+    background-color: #ffffff;
   }
 
-  /* Terminal-specific styles */
-  .terminal-prompt {
-    @apply font-mono text-accent;
-  }
-
-  .terminal-command {
-    @apply font-mono text-text-primary bg-white/5 px-2 py-0.5 rounded;
-  }
-
-  .terminal-output {
-    @apply font-mono text-text-secondary pl-4;
-  }
-
-  .terminal-cursor {
-    @apply inline-block w-2 h-4 bg-accent animate-pulse;
-  }
-
-  .terminal-link {
-    @apply hover:underline hover:decoration-dotted decoration-accent;
+  .border-accent {
+    border-color: #ffffff;
   }
 }
 
-/* Transitions */
+/* Remove all existing styles that conflict with black/white theme */
 .transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  transition: all 0.2s ease-in-out;
 }
 
 .transition-colors {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
 }
 
 .transition-transform {
-  transition-property: transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  transition: transform 0.2s ease-in-out;
 }
 
-/* 3D Transformations */
-.perspective-1000 {
-  perspective: 1000px;
-}
-
-.transform-style-3d {
-  transform-style: preserve-3d;
-}
-
-.backface-hidden {
-  backface-visibility: hidden;
-}
-
-.rotate-y-180 {
-  transform: rotateY(180deg);
-}
-
-/* Transitions */
-.transition-transform {
-  transition-property: transform;
-}
-
-.duration-500 {
-  transition-duration: 500ms;
-}
-
-/* Hover Effects */
-.hover\:scale-105:hover {
-  transform: scale(1.05);
-}
-
-/* Prose Styles */
-.prose {
-  max-width: 65ch;
-  color: inherit;
-}
-
-.prose p {
-  margin-top: 1.25em;
-  margin-bottom: 1.25em;
-}
-
-.prose-invert {
-  --tw-prose-body: #F5F5F5;
-  --tw-prose-headings: #F5F5F5;
-  --tw-prose-links: #4A7856;
-  --tw-prose-bold: #F5F5F5;
-  --tw-prose-counters: #88BDBC;
-  --tw-prose-bullets: #88BDBC;
-}
-
-/* Custom Range Slider Styles for Focus Soundscapes */
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-/* Webkit Browsers (Chrome, Safari, Edge) */
-input[type="range"]::-webkit-slider-track {
-  background: transparent;
-  height: 8px;
-  border-radius: 4px;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 18px;
-  width: 18px;
-  border-radius: 50%;
-  background: #F5F5F5;
-  border: 2px solid #4A7856;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-input[type="range"]::-webkit-slider-thumb:hover {
-  background: #4A7856;
-  border-color: #88BDBC;
-  transform: scale(1.1);
-}
-
-/* Firefox */
-input[type="range"]::-moz-range-track {
-  background: transparent;
-  height: 8px;
-  border-radius: 4px;
-  border: none;
-}
-
-input[type="range"]::-moz-range-thumb {
-  border: 2px solid #4A7856;
-  height: 18px;
-  width: 18px;
-  border-radius: 50%;
-  background: #F5F5F5;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-
-input[type="range"]::-moz-range-thumb:hover {
-  background: #4A7856;
-  border-color: #88BDBC;
-  transform: scale(1.1);
-}
-
-@layer base {
 body {
-    @apply bg-background text-text-primary;
-  }
-
-  .font-mono {
-    font-family: var(--font-jetbrains), ui-monospace, monospace;
-  }
+  font-family: 'Jost', sans-serif;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.font-mono {
+  font-family: var(--font-jetbrains), monospace;
+}
+
+.text-balance {
+  text-wrap: balance;
 }

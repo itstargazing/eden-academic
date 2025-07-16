@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, BookOpen, FileText, ArrowRight, ExternalLink, Download, BookMarked, Filter, Save, Copy, Check, AlertCircle } from "lucide-react";
+import { Search, BookOpen, FileText, ArrowRight, ExternalLink, Download, BookMarked, Filter, Save, Copy, Check, AlertCircle, Loader2 } from "lucide-react";
 import { useUserStore, Citation } from "@/store/user-store";
-import { CitationMatch } from '@/types';
+import { CitationService, CitationMatch } from "@/lib/citation-service";
 
 type SearchSources = {
   'Google Scholar': boolean;
@@ -11,47 +11,10 @@ type SearchSources = {
   'ArXiv': boolean;
   'PubMed': boolean;
   'Science Direct': boolean;
-  'Books': boolean;
-  'PDFs': boolean;
-  'Web': boolean;
+  'IEEE Xplore': boolean;
+  'ACM Digital Library': boolean;
+  'SpringerLink': boolean;
 };
-
-type SourceType = 'article' | 'book' | 'journal';
-
-const sourceTypeMap: Record<SourceType, Array<keyof SearchSources>> = {
-  'article': ['Google Scholar', 'ArXiv', 'PubMed', 'Science Direct'],
-  'book': ['Books'],
-  'journal': ['JSTOR', 'Science Direct']
-};
-
-const potentialMatches: CitationMatch[] = [
-  {
-    id: '1',
-    type: 'article',
-    title: 'The Impact of AI on Academic Research',
-    authors: 'Smith, John, Johnson, Mary',
-    year: '2023',
-    source: 'Journal of AI Studies',
-    excerpt: 'This study examines the transformative effects of artificial intelligence on academic research methodologies...',
-    doi: '10.1234/jas.2023.001',
-    volume: '45',
-    issue: '2',
-    pages: '123-145',
-    matchPercentage: 95
-  },
-  {
-    id: '2',
-    type: 'book',
-    title: 'Digital Learning Revolution',
-    authors: 'Brown, Robert',
-    year: '2022',
-    source: 'Academic Press',
-    excerpt: 'An exploration of how digital technologies are reshaping education...',
-    publisher: 'Academic Press',
-    isbn: '978-0-12-345678-9',
-    matchPercentage: 85
-  }
-];
 
 export default function GhostCitationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,211 +27,80 @@ export default function GhostCitationsPage() {
     'ArXiv': true,
     'PubMed': true,
     'Science Direct': true,
-    'Books': true,
-    'PDFs': true,
-    'Web': true
+    'IEEE Xplore': true,
+    'ACM Digital Library': true,
+    'SpringerLink': true
   });
   const [activeCitation, setActiveCitation] = useState<CitationMatch | null>(null);
-  const [selectedFormat, setSelectedFormat] = useState('APA');
+  const [selectedFormat, setSelectedFormat] = useState<'APA' | 'MLA' | 'Chicago' | 'IEEE' | 'Harvard'>('APA');
   const [isCopied, setIsCopied] = useState(false);
+  const [citationText, setCitationText] = useState("");
+  const [isGeneratingCitation, setIsGeneratingCitation] = useState(false);
   
   // Get user state from store
   const savedCitations = useUserStore(state => state.savedCitations);
-  const recentSearches = useUserStore(state => state.recentSearches);
   const saveCitation = useUserStore(state => state.saveCitation);
   const isLoggedIn = useUserStore(state => state.isLoggedIn);
   
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     
     setIsSearching(true);
     setHasResults(false);
     setResults([]);
+    setActiveCitation(null);
+    setCitationText("");
     
-    // Get selected sources
-    const selectedSources = (Object.keys(searchSources) as Array<keyof SearchSources>)
-      .filter(source => searchSources[source]);
-    
-    // Simulate search delay - different times for different sources
-    setTimeout(() => {
-      // More flexible content matching algorithm
-      const queryWords = searchQuery.toLowerCase().split(/\s+/).filter(word => word.length > 2);
+    try {
+      // Get selected sources
+      const selectedSources = (Object.keys(searchSources) as Array<keyof SearchSources>)
+        .filter(source => searchSources[source]);
       
-      const matches = potentialMatches.filter(match => {
-        // Check if match type is in selected sources
-        const matchTypes = sourceTypeMap[match.type as SourceType] || ['Web', 'PDFs'];
-        const isSourceSelected = matchTypes.some(type => selectedSources.includes(type));
-        if (!isSourceSelected) return false;
-        
-        // Check content match - more flexible matching
-        const matchContent = match.title.toLowerCase() + ' ' + 
-                           match.excerpt.toLowerCase() + ' ' + 
-                           match.authors.toLowerCase();
-        
-        // Count how many query words are found
-        let matchCount = 0;
-        queryWords.forEach(word => {
-          if (matchContent.includes(word)) {
-            matchCount++;
-          }
-        });
-        
-        // Match if at least 30% of query words are found (or at least 1 word for short queries)
-        const matchThreshold = Math.max(1, Math.floor(queryWords.length * 0.3));
-        return matchCount >= matchThreshold;
-      });
+      const searchResults = await CitationService.searchCitations(searchQuery, selectedSources);
       
-      // Sort by match percentage
-      matches.sort((a, b) => b.matchPercentage - a.matchPercentage);
-      
-      // Recalculate match percentages based on query terms
-      const enhancedMatches = matches.map(match => {
-        const queryTerms = searchQuery.toLowerCase().split(/\s+/).filter(term => term.length > 3);
-        const matchText = (match.title + " " + match.excerpt + " " + match.authors).toLowerCase();
-        
-        // Count term occurrences
-        let termMatches = 0;
-        queryTerms.forEach(term => {
-          if (matchText.includes(term)) termMatches++;
-        });
-        
-        // Adjust match percentage based on term matches
-        const adjustedPercentage = queryTerms.length > 0 
-          ? Math.round((termMatches / queryTerms.length) * 100)
-          : match.matchPercentage;
-          
-        return {
-          ...match,
-          matchPercentage: Math.max(adjustedPercentage, 45) // Minimum 45% to avoid too low percentages
-        };
-      });
-      
+      setResults(searchResults);
+      setHasResults(searchResults.length > 0);
+    } catch (error) {
+      console.error('Search error:', error);
+      setResults([]);
+      setHasResults(false);
+    } finally {
       setIsSearching(false);
-      setResults(enhancedMatches);
-      setHasResults(enhancedMatches.length > 0);
-    }, 1500);
+    }
   };
 
-  // Generate citation for a selected match
-  const [citationLoading, setCitationLoading] = useState(false);
-  const [citationText, setCitationText] = useState("");
-  
-  const formatAuthors = (authorString: string, format: string) => {
-    const authors = authorString.split(', ');
+  const generateCitation = async (paper: CitationMatch) => {
+    setActiveCitation(paper);
+    setIsGeneratingCitation(true);
     
-    if (format === 'APA') {
-      return authors.map(author => {
-        const names = author.split(' ');
-        if (names.length > 1) {
-          const lastName = names[names.length - 1];
-          const firstNames = names.slice(0, -1).map(n => n[0]).join('. ');
-          return `${lastName}, ${firstNames}.`;
-        }
-        return author;
-      }).join(', ');
-    } else if (format === 'MLA') {
-      return authors.map((author, index) => {
-        const names = author.split(' ');
-        if (names.length > 1) {
-          const lastName = names[names.length - 1];
-          const firstNames = names.slice(0, -1).join(' ');
-          return index === 0 ? `${lastName}, ${firstNames}` : `${firstNames} ${lastName}`;
-        }
-        return author;
-      }).join(authors.length > 1 ? ', and ' : '');
-    } else if (format === 'Chicago') {
-      return authors.map(author => {
-        const names = author.split(' ');
-        if (names.length > 1) {
-          const lastName = names[names.length - 1];
-          const firstNames = names.slice(0, -1).join(' ');
-          return `${lastName}, ${firstNames}`;
-        }
-        return author;
-      }).join(', and ');
-    } else if (format === 'IEEE') {
-      return authors.map(author => {
-        const names = author.split(' ');
-        if (names.length > 1) {
-          const lastName = names[names.length - 1];
-          const firstNames = names.slice(0, -1).map(n => n[0]).join('. ');
-          return `${firstNames}. ${lastName}`;
-        }
-        return author;
-      }).join(', ');
-    }
-    
-    return authorString;
-  };
-  
-  const generateCitation = (match: CitationMatch) => {
-    setCitationLoading(true);
-    setActiveCitation(match);
-    
-    setTimeout(() => {
-      let citation = "";
-      const authors = formatAuthors(match.authors, selectedFormat);
-      const doi = match.doi ? `https://doi.org/${match.doi}` : '';
-      const url = match.url || doi;
+    try {
+      // Simulate citation generation processing
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      if (selectedFormat === 'APA') {
-        if (match.type === 'article' || match.type === 'journal') {
-          const volume = match.volume || '';
-          const issue = match.issue || '';
-          const pages = match.pages || '1-15';
-          citation = `${authors} (${match.year}). ${match.title}. *${match.source}*${volume ? `, ${volume}` : ''}${issue ? `(${issue})` : ''}, ${pages}.${url ? ` ${url}` : ''}`;
-        } else if (match.type === 'book') {
-          citation = `${authors} (${match.year}). *${match.title}*. ${match.publisher || match.source}.${url ? ` ${url}` : ''}`;
-        }
-      } else if (selectedFormat === 'MLA') {
-        if (match.type === 'article' || match.type === 'journal') {
-          const pages = match.pages || '1-15';
-          citation = `${authors}. "${match.title}." *${match.source}*, ${match.year}, pp. ${pages}.${url ? ` Web. ${url}` : ''}`;
-        } else if (match.type === 'book') {
-          citation = `${authors}. *${match.title}*. ${match.publisher || match.source}, ${match.year}.${url ? ` Web. ${url}` : ''}`;
-        }
-      } else if (selectedFormat === 'Chicago') {
-        if (match.type === 'article' || match.type === 'journal') {
-          const pages = match.pages || '1-15';
-          citation = `${authors}. "${match.title}." *${match.source}* (${match.year}): ${pages}.${url ? ` ${url}` : ''}`;
-        } else if (match.type === 'book') {
-          citation = `${authors}. *${match.title}*. ${match.publisher || match.source}, ${match.year}.${url ? ` ${url}` : ''}`;
-        }
-      } else if (selectedFormat === 'IEEE') {
-        if (match.type === 'article' || match.type === 'journal') {
-          const volume = match.volume || '';
-          const issue = match.issue || '';
-          const pages = match.pages || '1-15';
-          citation = `${authors}, "${match.title}," *${match.source}*${volume ? `, vol. ${volume}` : ''}${issue ? `, no. ${issue}` : ''}, pp. ${pages}, ${match.year}.${url ? ` [Online]. Available: ${url}` : ''}`;
-        } else if (match.type === 'book') {
-          citation = `${authors}, *${match.title}*. ${match.publisher || match.source}, ${match.year}.${url ? ` [Online]. Available: ${url}` : ''}`;
-        }
-      }
-      
+      const citation = CitationService.generateCitation(paper, selectedFormat);
       setCitationText(citation);
-      setCitationLoading(false);
-    }, 800);
+    } catch (error) {
+      console.error('Citation generation error:', error);
+      setCitationText("Error generating citation. Please try again.");
+    } finally {
+      setIsGeneratingCitation(false);
+    }
   };
+  
+  // Update citation when format changes
+  useEffect(() => {
+    if (activeCitation && !isGeneratingCitation) {
+      generateCitation(activeCitation);
+    }
+  }, [selectedFormat]);
   
   const handleViewSource = (result: CitationMatch) => {
-    // Check if there's a direct URL or DOI
-    if (result.url) {
-      window.open(result.url, '_blank');
-      return;
-    }
-    
-    if (result.doi) {
-      window.open(`https://doi.org/${result.doi}`, '_blank');
-      return;
-    }
-    
-    // Fallback to Google Scholar search
-    const searchQuery = encodeURIComponent(`"${result.title}" ${result.authors} ${result.year}`);
-    window.open(`https://scholar.google.com/scholar?q=${searchQuery}`, '_blank');
+    const url = CitationService.getSourceUrl(result);
+    window.open(url, '_blank');
   };
   
   const isSourceAvailable = (result: CitationMatch) => {
-    return !!(result.url || result.doi);
+    return CitationService.isSourceAccessible(result);
   };
   
   const handleSaveCitation = () => {
@@ -277,7 +109,7 @@ export default function GhostCitationsPage() {
     const newCitation: Citation = {
       id: Date.now().toString(),
       text: citationText,
-      format: selectedFormat as any,
+      format: selectedFormat,
       source: activeCitation.source,
       date: new Date(),
     };
@@ -303,6 +135,38 @@ export default function GhostCitationsPage() {
     }));
   };
   
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'article':
+      case 'journal':
+        return <FileText size={16} className="text-blue-500" />;
+      case 'book':
+        return <BookOpen size={16} className="text-green-500" />;
+      case 'conference':
+        return <BookMarked size={16} className="text-purple-500" />;
+      case 'thesis':
+        return <FileText size={16} className="text-orange-500" />;
+      default:
+        return <FileText size={16} className="text-gray-500" />;
+    }
+  };
+  
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'article':
+      case 'journal':
+        return 'text-blue-400';
+      case 'book':
+        return 'text-green-400';
+      case 'conference':
+        return 'text-purple-400';
+      case 'thesis':
+        return 'text-orange-400';
+      default:
+        return 'text-gray-400';
+    }
+  };
+  
   return (
     <div className="space-y-8">
       <section className="py-6">
@@ -312,7 +176,7 @@ export default function GhostCitationsPage() {
           </div>
           <div>
             <h1 className="page-header">GhostCitations</h1>
-            <p className="text-text-secondary">Hunt down lost, hidden, or obscure references</p>
+            <p className="text-text-secondary">Find and format academic references from your memory</p>
           </div>
         </div>
       </section>
@@ -322,12 +186,14 @@ export default function GhostCitationsPage() {
         
         <div className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="search-query" className="block text-white">Describe what you remember about the reference</label>
+            <label htmlFor="search-query" className="block text-white font-medium">
+              Describe what you remember about the reference
+            </label>
             <textarea
               id="search-query"
               rows={4}
               className="input"
-              placeholder="e.g., 'Something about AI not being able to mimic Bruegel's intention' or 'A 2019 paper that discussed quantum computing applications in medicine...'"
+              placeholder="e.g., 'A 2021 paper about AI ethics by Smith' or 'Machine learning in education research from 2022' or 'Quantum computing applications in cryptography'"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
@@ -336,17 +202,28 @@ export default function GhostCitationsPage() {
                 }
               }}
             />
-            <p className="text-xs text-text-secondary mt-1">Press Ctrl+Enter to search</p>
+            <p className="text-xs text-text-secondary">
+              Be as specific as possible. Include author names, years, topics, or journal names if you remember them.
+            </p>
           </div>
           
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <button 
               className="btn btn-primary flex items-center gap-2"
               onClick={handleSearch}
-              disabled={isSearching}
+              disabled={isSearching || !searchQuery.trim()}
             >
-              <Search size={18} />
-              <span>{isSearching ? 'Searching...' : 'Search'}</span>
+              {isSearching ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Searching databases...
+                </>
+              ) : (
+                <>
+                  <Search size={18} />
+                  Search Citations
+                </>
+              )}
             </button>
             
             <button 
@@ -354,36 +231,36 @@ export default function GhostCitationsPage() {
               onClick={() => (document.getElementById('filters-dialog') as HTMLDialogElement)?.showModal()}
             >
               <Filter size={18} />
-              <span>Filters</span>
+              Sources ({Object.values(searchSources).filter(Boolean).length})
             </button>
           </div>
         </div>
       </section>
 
       {/* Source filters dialog */}
-      <dialog id="filters-dialog" className="bg-primary border border-white/10 rounded-lg p-6 shadow-xl text-white">
+      <dialog id="filters-dialog" className="bg-primary border border-white/10 rounded-lg p-6 shadow-xl text-white backdrop:bg-black/50">
         <h3 className="text-lg font-semibold mb-4">Select Search Sources</h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 gap-3 mb-6">
           {(Object.keys(searchSources) as Array<keyof SearchSources>).map(source => (
             <button
               key={source}
               onClick={() => toggleSource(source)}
-              className={`px-3 py-1 rounded-full text-sm ${
+              className={`px-4 py-2 rounded-lg text-sm transition-colors ${
                 searchSources[source]
-                  ? 'bg-white/20 text-white'
-                  : 'bg-background hover:bg-white/10 text-white/70'
+                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                  : 'bg-background hover:bg-white/5 text-white/70 border border-white/10'
               }`}
             >
               {source}
             </button>
           ))}
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           <button 
             className="btn btn-secondary"
             onClick={() => (document.getElementById('filters-dialog') as HTMLDialogElement)?.close()}
           >
-            Close
+            Done
           </button>
         </div>
       </dialog>
@@ -391,55 +268,75 @@ export default function GhostCitationsPage() {
       {/* Search results */}
       {hasResults && (
         <section className="card">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <h2 className="section-title mb-0">Search Results</h2>
-            <span className="text-sm text-text-secondary">{results.length} matches found</span>
+            <div className="flex items-center gap-4 text-sm text-text-secondary">
+              <span>{results.length} citations found</span>
+              <span>•</span>
+              <span>Sorted by relevance</span>
+            </div>
           </div>
 
           <div className="space-y-4">
             {results.map((result, index) => (
               <div 
-                key={index} 
-                className="p-4 bg-background border border-white/10 rounded-lg"
+                key={result.id} 
+                className="p-6 bg-background border border-white/10 rounded-lg hover:border-white/20 transition-colors"
               >
-                <div className="flex justify-between mb-1">
-                  <div className="flex items-center gap-2">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-3">
                     <div className="icon-container">
-                      {result.type === 'article' && <FileText size={16} className="text-blue-500" />}
-                      {result.type === 'book' && <BookOpen size={16} className="text-green-500" />}
-                      {result.type === 'journal' && <BookMarked size={16} className="text-purple-500" />}
+                      {getTypeIcon(result.type)}
                     </div>
-                    <span className="text-xs text-text-secondary">{result.type}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full bg-white/5 ${getTypeColor(result.type)}`}>
+                        {result.type}
+                      </span>
+                      {result.openAccess && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">
+                          Open Access
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-xs text-white bg-background border border-white/10 px-2 py-1 rounded-full">
-                    {result.matchPercentage}% match
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-white bg-blue-500/20 border border-blue-500/30 px-3 py-1 rounded-full">
+                      {result.matchPercentage}% match
+                    </span>
+                    {result.citationCount && (
+                      <span className="text-xs text-text-secondary">
+                        {result.citationCount} citations
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
-                <h3 className="text-white font-medium mt-2">{result.title}</h3>
-                <p className="text-text-secondary text-sm mt-1">{result.authors} • {result.year} • {result.source}</p>
-                <p className="text-white text-sm mt-2">{result.excerpt}</p>
+                <h3 className="text-white font-medium mb-2 leading-tight">{result.title}</h3>
+                <p className="text-text-secondary text-sm mb-3">
+                  {result.authors} • {result.year} • {result.source}
+                </p>
+                <p className="text-white text-sm mb-4 leading-relaxed">{result.excerpt}</p>
                 
-                <div className="flex gap-2 mt-3">
+                <div className="flex flex-wrap gap-2">
                   <button 
-                    className="btn btn-secondary text-xs flex items-center gap-1 py-1.5"
+                    className="btn btn-secondary text-xs flex items-center gap-1 py-2 px-3"
                     onClick={() => generateCitation(result)}
                   >
                     <BookMarked size={14} />
-                    <span>Cite</span>
+                    Generate Citation
                   </button>
                   
                   <div className="relative group">
                     <button 
-                      className={`btn text-xs flex items-center gap-1 py-1.5 ${
+                      className={`btn text-xs flex items-center gap-1 py-2 px-3 ${
                         isSourceAvailable(result) 
                           ? 'btn-secondary' 
-                          : 'btn-secondary opacity-50'
+                          : 'btn-secondary opacity-75'
                       }`}
                       onClick={() => handleViewSource(result)}
                     >
                       <ExternalLink size={14} />
-                      <span>View Source</span>
+                      View Source
                     </button>
                     
                     {!isSourceAvailable(result) && (
@@ -459,30 +356,53 @@ export default function GhostCitationsPage() {
         </section>
       )}
 
+      {/* No results message */}
+      {!isSearching && hasResults === false && searchQuery.trim() && (
+        <section className="card">
+          <div className="text-center py-12">
+            <AlertCircle size={48} className="mx-auto mb-4 text-text-secondary opacity-50" />
+            <h3 className="text-white font-medium mb-2">No citations found</h3>
+            <p className="text-text-secondary mb-4">
+              No matches found for "{searchQuery.slice(0, 50)}..."
+            </p>
+            <div className="text-sm text-text-secondary space-y-2">
+              <p>Try:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Different keywords or phrases</li>
+                <li>Author names if you remember them</li>
+                <li>Publication year or journal name</li>
+                <li>Broader topic terms</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Active citation view */}
       {activeCitation && (
         <section className="card">
-          <div className="flex justify-between mb-4">
-            <h2 className="section-title mb-0">Generated Citation</h2>
-            <div className="flex gap-2">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h2 className="section-title mb-2">Generated Citation</h2>
+              <p className="text-text-secondary text-sm">
+                {activeCitation.title} • {activeCitation.authors} • {activeCitation.year}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
               <select 
-                className="bg-background border border-white/10 text-white rounded-md px-2 py-1 text-sm"
+                className="bg-background border border-white/10 text-white rounded-md px-3 py-2 text-sm"
                 value={selectedFormat}
-                onChange={(e) => {
-                  setSelectedFormat(e.target.value);
-                  if (activeCitation) {
-                    generateCitation(activeCitation);
-                  }
-                }}
+                onChange={(e) => setSelectedFormat(e.target.value as any)}
               >
-                <option value="APA">APA</option>
-                <option value="MLA">MLA</option>
-                <option value="Chicago">Chicago</option>
-                <option value="IEEE">IEEE</option>
+                <option value="APA">APA Style</option>
+                <option value="MLA">MLA Style</option>
+                <option value="Chicago">Chicago Style</option>
+                <option value="IEEE">IEEE Style</option>
+                <option value="Harvard">Harvard Style</option>
               </select>
               
               <button 
-                className="btn btn-secondary py-1 px-2 text-sm"
+                className="btn btn-secondary py-2 px-3 text-sm"
                 onClick={closeCitation}
               >
                 Close
@@ -490,33 +410,34 @@ export default function GhostCitationsPage() {
             </div>
           </div>
           
-          <div className="p-4 bg-background border border-white/10 rounded-lg">
-            {citationLoading ? (
-              <div className="flex justify-center py-6">
-                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+          <div className="p-6 bg-background border border-white/10 rounded-lg">
+            {isGeneratingCitation ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 size={20} className="animate-spin mr-2" />
+                <span className="text-text-secondary">Generating {selectedFormat} citation...</span>
               </div>
             ) : (
-              <p className="text-white text-sm leading-relaxed">{citationText}</p>
+              <p className="text-white text-sm leading-relaxed font-mono">{citationText}</p>
             )}
           </div>
           
-          <div className="flex gap-3 mt-4">
+          <div className="flex gap-3 mt-6">
             <button 
               className="btn btn-primary flex items-center gap-2"
               onClick={handleSaveCitation}
-              disabled={!citationText}
+              disabled={!citationText || isGeneratingCitation}
             >
               <Save size={18} />
-              <span>Save Citation</span>
+              Save Citation
             </button>
             
             <button 
               className="btn btn-secondary flex items-center gap-2"
               onClick={handleCopyCitation}
-              disabled={!citationText}
+              disabled={!citationText || isGeneratingCitation}
             >
               {isCopied ? <Check size={18} /> : <Copy size={18} />}
-              <span>{isCopied ? 'Copied!' : 'Copy'}</span>
+              {isCopied ? 'Copied!' : 'Copy Citation'}
             </button>
           </div>
         </section>

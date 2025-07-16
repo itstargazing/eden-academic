@@ -11,12 +11,12 @@ module.exports = {
       colors: {
         // Main background color - solid black
         background: '#000000',
-        'background-light': '#121212',
+        'background-light': '#000000',
         
         // Primary UI colors for cards, containers, etc.
-        primary: '#0a0a0a',
-        'primary-light': '#1a1a1a',
-        'primary-dark': '#050505',
+        primary: '#000000',
+        'primary-light': '#000000',
+        'primary-dark': '#000000',
         
         // Accent color - white
         accent: '#ffffff',

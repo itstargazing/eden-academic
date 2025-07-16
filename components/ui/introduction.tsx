@@ -52,71 +52,67 @@ export default function Introduction({ onComplete }: IntroductionProps) {
   return (
     <div className="fixed inset-0 z-40 bg-background flex items-center justify-center">
       <div className="max-w-4xl w-full px-4">
-        {/* Main content */}
+        {/* Main content - simplified animation */}
         <motion.div
           className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <h1 className="text-6xl font-bold text-text-primary mb-6 font-logo">
+          <h1 className="text-6xl font-bold text-white mb-6 font-unbounded">
             Welcome to EDEN
           </h1>
-          <p className="text-xl text-text-secondary mb-12">
+          <p className="text-xl text-gray-300 mb-12">
             Your Educational Development Environment
           </p>
         </motion.div>
 
-        {/* Features */}
+        {/* Features - optimized animations */}
         <div className="grid grid-cols-2 gap-8 mb-20">
           {features.map((feature, index) => (
             <motion.div
               key={index}
-              className={`p-6 rounded-lg border ${
+              className={`p-6 rounded-lg border transition-all duration-300 ${
                 currentFeature >= index 
-                  ? 'border-accent/20 bg-primary' 
-                  : 'border-accent/5 bg-transparent'
+                  ? 'border-white/20 bg-gray-900' 
+                  : 'border-white/5 bg-transparent'
               }`}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+              initial={{ opacity: 0.3 }}
               animate={{ 
                 opacity: currentFeature >= index ? 1 : 0.3,
-                x: 0,
-                scale: currentFeature === index ? 1.05 : 1,
-                transitionEnd: {
-                  scale: 1
-                }
+                scale: currentFeature === index ? 1.02 : 1,
               }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
               <feature.icon 
-                className={`w-8 h-8 mb-4 ${
-                  currentFeature >= index ? 'text-accent' : 'text-accent/30'
+                className={`w-8 h-8 mb-4 transition-colors duration-300 ${
+                  currentFeature >= index ? 'text-white' : 'text-white/30'
                 }`} 
               />
-              <h3 className="text-xl font-bold text-text-primary mb-2">
+              <h3 className="text-xl font-bold text-white mb-2">
                 {feature.title}
               </h3>
-              <p className="text-text-secondary">
+              <p className="text-gray-300">
                 {feature.description}
               </p>
             </motion.div>
           ))}
         </div>
 
-        {/* Enter button */}
+        {/* Enter button - fixed visibility */}
         {showEnter && (
           <motion.div
             className="text-center mb-40"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
           >
             <button
               onClick={onComplete}
-              className="group inline-flex items-center gap-2 px-8 py-3 text-sm bg-highlight text-black font-medium rounded-md hover:bg-highlight/90 transition-colors duration-300 font-logo border-2 border-highlight"
+              className="group inline-flex items-center gap-2 px-8 py-3 text-lg bg-white text-black font-medium rounded-md hover:bg-gray-200 transition-colors duration-300 font-unbounded border-2 border-white"
             >
               DISCOVER EDEN
-              <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </motion.div>
         )}
@@ -127,7 +123,7 @@ export default function Introduction({ onComplete }: IntroductionProps) {
             <div
               key={index}
               className={`w-2 h-2 rounded-full transition-colors duration-300 ${
-                currentFeature >= index ? 'bg-accent' : 'bg-accent/20'
+                currentFeature >= index ? 'bg-white' : 'bg-white/20'
               }`}
             />
           ))}

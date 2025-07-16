@@ -210,41 +210,86 @@ export const useUserStore = create<UserState>()(
         
         const matches: ResearcherMatch[] = [];
         
+        // Enhanced field synonyms for better matching
+        const fieldSynonyms: Record<string, string[]> = {
+          'ai': ['artificial intelligence', 'machine learning', 'deep learning', 'neural networks', 'nlp', 'computer vision'],
+          'ml': ['machine learning', 'artificial intelligence', 'data science', 'predictive modeling'],
+          'biology': ['biomedical', 'bioinformatics', 'life sciences', 'molecular biology', 'genetics'],
+          'physics': ['quantum', 'theoretical physics', 'applied physics', 'quantum computing'],
+          'computer science': ['software engineering', 'programming', 'algorithms', 'data structures'],
+          'data science': ['analytics', 'big data', 'statistics', 'machine learning', 'data mining'],
+          'quantum': ['quantum computing', 'quantum mechanics', 'quantum algorithms', 'quantum information'],
+          'neuroscience': ['cognitive science', 'brain modeling', 'neural networks', 'psychology'],
+          'robotics': ['autonomous systems', 'computer vision', 'sensor fusion', 'SLAM'],
+          'cybersecurity': ['network security', 'threat detection', 'information security'],
+          'hci': ['human computer interaction', 'user experience', 'interface design', 'usability']
+        };
+        
         state.researchers.forEach(researcher => {
           const searchableText = researcher.matchableText.toLowerCase();
           const researcherKeywords = researcher.keywords.map(k => k.toLowerCase());
           
-          // Calculate token-based similarity
           let matchingTokens = 0;
           let matchingKeywords: string[] = [];
           
           queryWords.forEach(queryWord => {
-            // Check if query word appears in searchable text
+            // Direct text matching
             if (searchableText.includes(queryWord)) {
-              matchingTokens++;
+              matchingTokens += 2;
             }
             
-            // Check for exact keyword matches
-            researcherKeywords.forEach(keyword => {
+            // Exact keyword matches
+            researcherKeywords.forEach((keyword, index) => {
+              const originalKeyword = researcher.keywords[index];
               if (keyword.includes(queryWord) || queryWord.includes(keyword)) {
-                if (!matchingKeywords.includes(keyword)) {
-                  matchingKeywords.push(keyword);
-                  matchingTokens += 2; // Keyword matches get higher weight
+                if (!matchingKeywords.includes(originalKeyword)) {
+                  matchingKeywords.push(originalKeyword);
+                  matchingTokens += 3; // Higher weight for keyword matches
                 }
               }
             });
+            
+            // Semantic field matching using synonyms
+            Object.entries(fieldSynonyms).forEach(([key, synonyms]) => {
+              if (queryWord.includes(key) || key.includes(queryWord)) {
+                synonyms.forEach(synonym => {
+                  if (searchableText.includes(synonym)) {
+                    matchingTokens += 1;
+                  }
+                });
+              }
+            });
+            
+            // Fuzzy matching for partial words (minimum 4 characters)
+            if (queryWord.length >= 4) {
+              researcherKeywords.forEach((keyword, index) => {
+                const originalKeyword = researcher.keywords[index];
+                if (keyword.length >= 4 && !matchingKeywords.includes(originalKeyword)) {
+                  // Check if query word is a substring of keyword or vice versa
+                  if (keyword.includes(queryWord.slice(0, -1)) || queryWord.includes(keyword.slice(0, -1))) {
+                    matchingKeywords.push(originalKeyword);
+                    matchingTokens += 1;
+                  }
+                }
+              });
+            }
           });
           
-          // Calculate match score (0-100)
-          const maxPossibleScore = queryWords.length * 3; // Max if all words match with keyword bonus
-          const matchScore = Math.min(100, Math.round((matchingTokens / maxPossibleScore) * 100));
+          // Calculate match score with improved algorithm
+          const maxPossibleScore = queryWords.length * 4; // Adjusted for higher weights
+          let matchScore = Math.min(100, Math.round((matchingTokens / maxPossibleScore) * 100));
+          
+          // Boost score for researchers with many matching keywords
+          if (matchingKeywords.length > 2) {
+            matchScore = Math.min(100, matchScore + (matchingKeywords.length - 2) * 5);
+          }
           
           // Only include matches above threshold
-          if (matchScore >= 30) {
+          if (matchScore >= 25) {
             matches.push({
               researcher,
               matchScore,
-              matchingKeywords: matchingKeywords.slice(0, 3) // Limit to top 3 matching keywords
+              matchingKeywords: matchingKeywords.slice(0, 5) // Show up to 5 matching keywords
             });
           }
         });

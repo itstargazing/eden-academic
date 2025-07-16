@@ -62,7 +62,7 @@ export default function CognitiveQuiz({ onComplete }: { onComplete: (profile: Co
   const isComplete = Object.keys(answers).length === questions.length;
 
   return (
-    <div className="space-y-8 p-6 bg-background/50 rounded-lg border border-white/10">
+    <div className="space-y-8 p-6 bg-background rounded-lg border border-white/10">
       <h3 className="text-xl font-semibold text-white">Cognitive Style Quiz</h3>
       
       <div className="space-y-6">

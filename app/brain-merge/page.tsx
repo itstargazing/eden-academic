@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Brain, Users, Search, Share, Mail, Github, Linkedin, Star, Upload, FileText, X, Check, Send, AlertCircle, UserPlus, MessageSquare } from "lucide-react";
 import { useUserStore, ResearcherMatch, UserResearchProfile } from "@/store/user-store";
 import { initialResearchers } from "@/lib/researchers-db";
+import { ConnectionService } from "@/lib/connection-service";
 
 interface ConnectionModalData {
   researcher: ResearcherMatch['researcher'];
@@ -95,20 +96,34 @@ export default function BrainMergePage() {
     
     setIsSendingConnection(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    sendConnectionRequest(connectionModal.researcher.id, connectionMessage);
-    
-    setIsSendingConnection(false);
-    setConnectionSuccess(true);
-    
-    // Close modal after success message
-    setTimeout(() => {
-      setConnectionModal({ researcher: null as any, isOpen: false });
-      setConnectionSuccess(false);
-      setConnectionMessage("");
-    }, 2000);
+    try {
+      const result = await ConnectionService.sendConnectionRequest(
+        'current-user', // In production, this would be the actual user ID
+        connectionModal.researcher.id,
+        connectionMessage
+      );
+      
+      if (result.success) {
+        setConnectionSuccess(true);
+        
+        // Update local store
+        sendConnectionRequest(connectionModal.researcher.id, connectionMessage);
+        
+        // Close modal after success message
+        setTimeout(() => {
+          setConnectionModal({ researcher: null as any, isOpen: false });
+          setConnectionSuccess(false);
+          setConnectionMessage("");
+        }, 2000);
+      } else {
+        // Show error message
+        alert(result.error || 'Failed to send connection request');
+      }
+    } catch (error) {
+      alert('Network error. Please try again.');
+    } finally {
+      setIsSendingConnection(false);
+    }
   };
 
   const handleShareResearch = async () => {

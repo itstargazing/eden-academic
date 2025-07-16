@@ -1,174 +1,228 @@
+'use client';
+
 import { motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
-import { ChevronRight } from 'lucide-react';
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 interface LogoSplashProps {
   onDiscover: () => void;
 }
 
 export default function LogoSplash({ onDiscover }: LogoSplashProps) {
-  const taglineWords = ["[Education's", "Digital", "Evolution", "Network]"];
+  const [currentLine, setCurrentLine] = useState(0);
+  const [showCursor, setShowCursor] = useState(true);
+  const [matrixChars, setMatrixChars] = useState<string[]>([]);
   const prefersReducedMotion = useReducedMotion();
-  
-  // Memoize particle positions to prevent recalculation on each render
-  const particles = useMemo(() => {
-    return [...Array(12)].map(() => ({
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      duration: 3 + Math.random() * 1.5,
-      delay: Math.random() * 1.5
-    }));
+
+  const terminalLines = [
+    '> system_boot.exe',
+    '> loading_eden_protocol...',
+    '> initializing_academic_network...',
+    '> connecting_to_research_nodes...',
+    '> academic_evolution_ready',
+    '> press_any_key_to_continue'
+  ];
+
+  // Matrix rain effect
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    
+    const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+    const interval = setInterval(() => {
+      setMatrixChars(prev => {
+        const newChars = [...prev];
+        for (let i = 0; i < 5; i++) {
+          newChars[Math.floor(Math.random() * 20)] = chars[Math.floor(Math.random() * chars.length)];
+        }
+        return newChars.slice(0, 20);
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [prefersReducedMotion]);
+
+  // Terminal typing effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentLine(prev => (prev + 1) % terminalLines.length);
+    }, 800);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Cursor blink effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 500);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex items-center justify-center overflow-hidden">
-      {/* Optimized animated background - reduced number of particles */}
+    <div className="fixed inset-0 z-50 bg-black text-white overflow-hidden font-mono">
+      {/* Matrix rain background */}
       {!prefersReducedMotion && (
-        <div className="absolute inset-0 overflow-hidden will-change-transform">
-          {particles.map((particle, i) => (
-            <motion.div
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(50)].map((_, i) => (
+            <div
               key={i}
-              className="absolute w-1 h-1 bg-accent/40 rounded-full"
+              className="absolute text-white/10 text-xs"
               style={{
-                left: particle.left,
-                top: particle.top,
-                willChange: 'transform, opacity'
+                left: `${(i * 2) % 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`
               }}
-              initial={{ y: 0, opacity: 0.4, scale: 1 }}
-              animate={{
-                y: [-20, 0, -20],
-                opacity: [0.4, 0.7, 0.4],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: particle.duration,
-                repeat: Infinity,
-                delay: particle.delay,
-                ease: "linear",
-              }}
-            />
+            >
+              <div className="matrix-text">
+                {matrixChars[i % matrixChars.length] || '0'}
+              </div>
+            </div>
           ))}
         </div>
       )}
 
-      {/* Optimized fog overlay */}
+      {/* Scanline effect */}
       {!prefersReducedMotion && (
-        <motion.div
-          className="absolute inset-0 bg-gradient-radial from-accent/5 via-transparent to-transparent"
-          initial={{ opacity: 0.3 }}
-          animate={{
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          style={{ willChange: 'opacity' }}
-        />
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="scanline absolute w-full h-px bg-white/20"></div>
+        </div>
       )}
 
-      <div className="text-center relative z-10 flex flex-col items-center justify-center min-h-screen">
-        {/* Logo + EDEN - fade in together */}
-        <motion.div
-          className="mb-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-        >
-          <div className="mx-auto w-96 h-96 mb-1 flex items-center justify-center relative overflow-visible">
-            <Image
-              src="/images/logo.png"
-              alt="EDEN Logo"
-              width={576}
-              height={576}
-              className="w-[150%] h-[150%] object-contain absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-              priority
-            />
-          </div>
-          <h1 className="text-4xl font-bold text-text-primary font-logo mb-3">
-            EDEN
-          </h1>
-        </motion.div>
-
-        {/* Tagline - word by word animation */}
-        <motion.div 
-          className="mb-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.8, duration: 0.5 }}
-        >
-          <p className="text-lg text-text-secondary">
-            {taglineWords.map((word, index) => (
-              <motion.span
-                key={index}
-                className="inline-block mr-2"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: 2 + index * 0.3,
-                  duration: 0.6,
-                  ease: "easeOut",
-                }}
-              >
-                {word}
-              </motion.span>
-            ))}
-          </p>
-        </motion.div>
-
-        {/* Discover Button - ripple effect */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ 
-            delay: 3.5, 
-            duration: 0.8,
-            type: "spring",
-            stiffness: 100,
-            damping: 10
-          }}
-        >
-          <div className="relative">
-            {/* Ripple effect behind button */}
-            <motion.div
-              className="absolute inset-0 bg-highlight/30 rounded-lg"
-              initial={{ scale: 1, opacity: 0 }}
-              animate={{ 
-                scale: [1, 1.2, 1],
-                opacity: [0, 0.3, 0],
-              }}
-              transition={{
-                delay: 3.5,
-                duration: 1.5,
-                ease: "easeOut",
-              }}
-            />
-            <motion.div
-              className="absolute inset-0 bg-highlight/20 rounded-lg"
-              initial={{ scale: 1, opacity: 0 }}
-              animate={{ 
-                scale: [1, 1.4, 1],
-                opacity: [0, 0.2, 0],
-              }}
-              transition={{
-                delay: 3.7,
-                duration: 1.5,
-                ease: "easeOut",
-              }}
-            />
-            
-            <button
-              onClick={onDiscover}
-              className="relative group inline-flex items-center gap-2 px-8 py-3 text-lg bg-highlight text-black font-medium rounded-lg hover:bg-highlight/90 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-logo"
-            >
-              DISCOVER
-              <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
-        </motion.div>
+      {/* Top bar with small logo */}
+      <div className="absolute top-4 left-4 flex items-center space-x-3 z-10">
+        <Image
+          src="/images/logo.png"
+          alt="EDEN Logo"
+          width={32}
+          height={32}
+          className="rounded-sm"
+        />
+        <span className="text-sm font-mono">EDEN_ACADEMIC_PLATFORM_v2.1.0</span>
       </div>
+
+      {/* Terminal window */}
+      <div className="absolute top-16 left-4 right-4 bottom-4 border border-white/30 bg-black/80 backdrop-blur-sm">
+        {/* Terminal header */}
+        <div className="flex items-center justify-between p-2 border-b border-white/30">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-white/60"></div>
+            <div className="w-3 h-3 rounded-full bg-white/40"></div>
+            <div className="w-3 h-3 rounded-full bg-white/20"></div>
+          </div>
+          <span className="text-xs">eden@academic:~$</span>
+        </div>
+
+        {/* Terminal content */}
+        <div className="p-4 h-full flex flex-col justify-center items-center">
+          {/* Terminal output */}
+          <div className="w-full max-w-2xl mb-8">
+            {terminalLines.slice(0, currentLine + 1).map((line, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="mb-2 text-sm"
+              >
+                <span className="text-white/60">eden@academic:~$ </span>
+                <span className="text-white">{line}</span>
+              </motion.div>
+            ))}
+            <div className="flex items-center text-sm">
+              <span className="text-white/60">eden@academic:~$ </span>
+              <span className="text-white">_</span>
+              {showCursor && <span className="terminal-cursor">█</span>}
+            </div>
+          </div>
+
+          {/* Main EDEN title */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1, duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h1 className="font-unbounded text-8xl md:text-9xl font-bold text-white mb-4 tracking-wider">
+              EDEN
+            </h1>
+            <div className="text-xl font-mono text-white/80 mb-2">
+              [Education's Digital Evolution Network]
+            </div>
+            <div className="text-sm font-mono text-white/60">
+              Academic Research Platform • AI-Powered Tools • Global Network
+            </div>
+          </motion.div>
+
+          {/* Interactive elements */}
+          <div className="text-center space-y-4">
+            {/* Discover button */}
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.5 }}
+              onClick={onDiscover}
+              className="bg-transparent border-2 border-white text-white px-8 py-3 text-lg font-mono uppercase tracking-wider hover:bg-white hover:text-black transition-all duration-300 font-bold"
+              onMouseEnter={() => {
+                if (!prefersReducedMotion) {
+                  document.querySelector('.discover-btn')?.classList.add('glitch-effect');
+                }
+              }}
+              onMouseLeave={() => {
+                document.querySelector('.discover-btn')?.classList.remove('glitch-effect');
+              }}
+            >
+              DISCOVER_TOOLS
+            </motion.button>
+
+            {/* Status indicators */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 2 }}
+              className="flex justify-center space-x-8 text-sm font-mono"
+            >
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <span>SYSTEM_ONLINE</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <span>AI_READY</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <span>NETWORK_ACTIVE</span>
+              </div>
+            </motion.div>
+
+            {/* Interactive prompt */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 2.5 }}
+              className="text-xs font-mono text-white/60 mt-8"
+            >
+              <div className="typing-effect">
+                Press DISCOVER_TOOLS to initialize academic protocol...
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* Corner decorations */}
+      <div className="absolute top-0 left-0 w-16 h-16 border-l-2 border-t-2 border-white/30"></div>
+      <div className="absolute top-0 right-0 w-16 h-16 border-r-2 border-t-2 border-white/30"></div>
+      <div className="absolute bottom-0 left-0 w-16 h-16 border-l-2 border-b-2 border-white/30"></div>
+      <div className="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 border-white/30"></div>
+
+      {/* Glitch overlay */}
+      {!prefersReducedMotion && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-white/5 mix-blend-overlay opacity-0 animate-pulse"></div>
+        </div>
+      )}
     </div>
   );
 } 

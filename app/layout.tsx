@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import { JetBrains_Mono } from 'next/font/google';
+import { JetBrains_Mono, Unbounded } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
-import Sidebar from '../components/layout/sidebar';
+import Sidebar, { SidebarProvider } from '../components/layout/sidebar';
 import { getServerSession } from 'next-auth';
 import PageTransition from '@/components/layout/page-transition';
 import Script from 'next/script';
@@ -13,6 +13,10 @@ const inter = Inter({ subsets: ['latin'] });
 const jetbrainsMono = JetBrains_Mono({ 
   subsets: ['latin'],
   variable: '--font-jetbrains'
+});
+const unbounded = Unbounded({ 
+  subsets: ['latin'],
+  variable: '--font-unbounded'
 });
 
 export const metadata: Metadata = {
@@ -52,36 +56,33 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="dark">
-      <head>
-        {/* Google Analytics */}
-        {GA_TRACKING_ID && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${GA_TRACKING_ID}');
-              `}
-            </Script>
-          </>
-        )}
-      </head>
-      <body className={`${inter.className} ${jetbrainsMono.variable} bg-background text-text-primary antialiased`}>
+      <body className={`${inter.className} ${jetbrainsMono.variable} ${unbounded.variable} antialiased`}>
         <Providers session={session}>
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <main className="flex-1 lg:ml-[250px] p-4 lg:p-8">
-              <PageTransition>
-                {children}
-              </PageTransition>
-            </main>
-          </div>
+          <SidebarProvider>
+            <div className="min-h-screen">
+              <Sidebar />
+              <main className="transition-all duration-300 p-8" style={{ marginLeft: 'var(--sidebar-width, 250px)' }}>
+                <PageTransition>
+                  {children}
+                </PageTransition>
+              </main>
+            </div>
+          </SidebarProvider>
         </Providers>
+        
+        {/* Google Analytics */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_TRACKING_ID}');
+          `}
+        </Script>
       </body>
     </html>
   );
