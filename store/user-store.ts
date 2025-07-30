@@ -12,7 +12,7 @@ export type StudySession = {
 export type Citation = {
   id: string
   text: string
-  format: 'APA' | 'MLA' | 'Chicago' | 'Harvard'
+  format: 'APA' | 'MLA' | 'Chicago' | 'IEEE' | 'Harvard'
   source: string
   date: Date
 }
