@@ -257,7 +257,7 @@ export class TextProcessor {
       readabilityScore,
       keyPoints,
       simplifiedText,
-      improvements: [...new Set(improvements)] // Remove duplicates
+      improvements: Array.from(new Set(improvements)) // Remove duplicates
     };
   }
   
