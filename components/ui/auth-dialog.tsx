@@ -114,15 +114,15 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
     >
       {/* Modal dialog */}
       <div 
-        className="bg-primary rounded-lg w-full max-w-md p-6 border border-white/20 shadow-xl"
+        className="bg-primary rounded-lg w-full max-w-md p-4 sm:p-6 border border-white/20 shadow-xl m-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="p-2 rounded-full bg-white flex items-center justify-center">
-              {isLogin ? <Lock size={20} className="text-black" /> : <UserPlus size={20} className="text-black" />}
+              {isLogin ? <Lock size={18} className="text-black" /> : <UserPlus size={18} className="text-black" />}
             </div>
-            <h2 className="text-xl font-semibold text-white font-logo">
+            <h2 className="text-lg sm:text-xl font-semibold text-white font-logo">
               {isLogin ? 'LOGIN' : 'CREATE ACCOUNT'}
             </h2>
           </div>
@@ -140,7 +140,7 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           {!isLogin && (
             <div className="space-y-2">
               <label htmlFor="username" className="block text-sm text-text-secondary">Username</label>

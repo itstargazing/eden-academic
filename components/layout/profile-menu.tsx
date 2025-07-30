@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { User, LogOut, Settings, UserPlus } from 'lucide-react';
 import { useUserStore } from '../../store/user-store';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import AuthDialog from '../ui/auth-dialog';
 
 export default function ProfileMenu() {
@@ -9,12 +10,34 @@ export default function ProfileMenu() {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { username, isLoggedIn, logout } = useUserStore();
   const router = useRouter();
+  const menuRef = useRef<HTMLDivElement>(null);
+  
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
   
   const toggleMenu = () => {
+    console.log('Profile menu clicked. isLoggedIn:', isLoggedIn);
     if (isLoggedIn) {
-      setIsMenuOpen(!isMenuOpen);
+      // Direct navigation to account page - no dropdown
+      console.log('Navigating directly to account page');
+      router.push('/account');
     } else {
       // If not logged in, open auth dialog directly
+      console.log('User not logged in, opening auth dialog');
       setIsAuthDialogOpen(true);
     }
   };
@@ -30,13 +53,21 @@ export default function ProfileMenu() {
     router.push('/');
   };
 
-  const goToAccount = () => {
-    router.push('/account');
+  const goToAccount = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    console.log('Account button clicked - Navigating to account page');
     setIsMenuOpen(false);
+    // Use setTimeout to ensure menu closes before navigation
+    setTimeout(() => {
+      router.push('/account');
+    }, 10);
   };
   
   return (
-    <div className="relative">
+    <div className="relative" ref={menuRef}>
       <button 
         className="flex items-center gap-2 p-2 rounded-md hover:bg-primary-light text-white"
         onClick={toggleMenu}
@@ -48,19 +79,21 @@ export default function ProfileMenu() {
             <UserPlus size={16} className="text-black" />
           )}
         </div>
-        <span className="text-sm">{isLoggedIn ? username : 'Login / Sign Up'}</span>
+        <span className="text-sm">{isLoggedIn ? `${username} (Click for Account)` : 'Login / Sign Up'}</span>
       </button>
       
-      {isMenuOpen && isLoggedIn && (
-        <div className="absolute top-full right-0 mt-2 w-48 bg-primary rounded-md shadow-lg overflow-hidden z-10 border border-white/10">
+      {/* Temporarily disabled dropdown - direct navigation instead */}
+      {false && isMenuOpen && isLoggedIn && (
+        <div className="absolute top-full right-0 mt-2 w-48 bg-black rounded-md shadow-xl overflow-hidden z-[100] border border-white/20" style={{ boxShadow: '0 20px 25px -5px rgba(255, 255, 255, 0.1)' }}>
           <div className="p-2">
-            <button 
-              className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-primary-light text-white text-left"
-              onClick={goToAccount}
+            <Link 
+              href="/account"
+              className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-white/10 text-white text-left"
+              onClick={() => setIsMenuOpen(false)}
             >
               <User size={16} className="text-text-secondary" />
               <span>Account</span>
-            </button>
+            </Link>
             <button 
               className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-primary-light text-white text-left"
               onClick={handleLogout}

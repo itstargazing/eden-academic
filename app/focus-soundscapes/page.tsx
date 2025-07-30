@@ -264,7 +264,7 @@ export default function FocusSoundscapesPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 feature-page">
       <section className="py-6">
         <div className="flex items-center gap-4 mb-6">
           <div className="p-3 bg-background border border-white/20 rounded-lg">

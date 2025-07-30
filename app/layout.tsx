@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import { JetBrains_Mono, Unbounded } from 'next/font/google';
+import { JetBrains_Mono, Unbounded, Outfit } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import Sidebar, { SidebarProvider } from '../components/layout/sidebar';
@@ -17,6 +17,10 @@ const jetbrainsMono = JetBrains_Mono({
 const unbounded = Unbounded({ 
   subsets: ['latin'],
   variable: '--font-unbounded'
+});
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit'
 });
 
 export const metadata: Metadata = {
@@ -56,12 +60,12 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} ${jetbrainsMono.variable} ${unbounded.variable} antialiased`}>
+      <body className={`${inter.className} ${jetbrainsMono.variable} ${unbounded.variable} ${outfit.variable} antialiased`}>
         <Providers session={session}>
           <SidebarProvider>
             <div className="min-h-screen">
               <Sidebar />
-              <main className="transition-all duration-300 p-8" style={{ marginLeft: 'var(--sidebar-width, 250px)' }}>
+              <main className="transition-all duration-300 p-4 sm:p-6 lg:p-8" style={{ marginLeft: 'var(--sidebar-width, 250px)' }}>
                 <PageTransition>
                   {children}
                 </PageTransition>
