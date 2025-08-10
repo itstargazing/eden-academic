@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '../../store/user-store';
 import { OAuthService, ConnectedApp } from '../../lib/oauth-service';
+import { useTheme } from '../../lib/theme-context';
 import { 
   LogOut, 
   User,
@@ -36,10 +37,11 @@ export default function AccountPage() {
     totalStudyHours,
     savedCitations 
   } = useUserStore();
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const { theme, toggleTheme } = useTheme();
   const [showEditModal, setShowEditModal] = useState(false);
   const [connectedApps, setConnectedApps] = useState<ConnectedApp[]>([]);
   const [connectingApp, setConnectingApp] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [currentQuote, setCurrentQuote] = useState(0);
 
   // Motivational quotes for students and researchers
@@ -87,6 +89,7 @@ export default function AccountPage() {
   ];
 
   useEffect(() => {
+    setIsHydrated(true);
     console.log('Account page - Auth status:', isLoggedIn);
     if (!isLoggedIn) {
       console.log('User not authenticated, redirecting to home');
@@ -114,18 +117,29 @@ export default function AccountPage() {
   const handleConnectApp = async (appId: string, connected: boolean) => {
     setConnectingApp(appId);
     try {
-      const result = connected 
-        ? await OAuthService.disconnectApp(appId)
-        : await OAuthService.connectApp(appId);
-        
-      if (result.success) {
-        setConnectedApps(OAuthService.getConnectedApps());
+      if (connected) {
+        // Disconnect app
+        const result = await OAuthService.disconnectApp(appId);
+        if (result.success) {
+          setConnectedApps(OAuthService.getConnectedApps());
+          alert('App disconnected successfully!');
+        } else {
+          alert('Failed to disconnect app: ' + result.error);
+        }
       } else {
-        console.error('Failed to connect/disconnect app:', result.error);
+        // Connect app - this will redirect to OAuth provider
+        const result = await OAuthService.connectApp(appId);
+        if (result.success) {
+          // User will be redirected to OAuth provider
+          console.log('Redirecting to OAuth provider...');
+        } else {
+          alert('Failed to connect app: ' + result.error);
+          setConnectingApp(null);
+        }
       }
     } catch (error) {
       console.error('OAuth error:', error);
-    } finally {
+      alert('An error occurred. Please try again.');
       setConnectingApp(null);
     }
   };
@@ -134,7 +148,7 @@ export default function AccountPage() {
     setCurrentQuote((prev) => (prev + 1) % motivationalQuotes.length);
   };
 
-  if (!isLoggedIn) {
+  if (!isLoggedIn || !isHydrated) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
@@ -298,11 +312,11 @@ export default function AccountPage() {
                   <div className="space-y-2">
                     <label className="text-sm text-white/60">Theme</label>
                     <button 
-                      onClick={() => setIsDarkMode(!isDarkMode)}
+                      onClick={toggleTheme}
                       className="flex items-center gap-2 text-white hover:text-accent transition-colors"
                     >
-                      {isDarkMode ? <Moon size={16} /> : <Sun size={16} />}
-                      <span>{isDarkMode ? 'Dark Mode' : 'Light Mode'}</span>
+                      {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+                      <span>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
                     </button>
                   </div>
                 </div>

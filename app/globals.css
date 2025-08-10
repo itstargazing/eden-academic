@@ -22,11 +22,87 @@
   --sidebar-width: 250px;
 }
 
-/* Set dark mode by default */
+/* Theme styles */
 body {
   background-color: var(--background);
   color: var(--text-primary);
   font-family: 'Jost', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light theme styles */
+.light {
+  --background: #ffffff;
+  --background-light: #f8f9fa;
+  --primary: #ffffff;
+  --primary-light: #f1f3f4;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+}
+
+.light .card {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  color: #000000;
+}
+
+.light .btn {
+  border-color: #000000;
+  color: #000000;
+}
+
+.light .btn:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.light .btn-primary {
+  border-color: #000000;
+  color: #000000;
+}
+
+.light .btn-primary:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.light .btn-secondary {
+  border-color: #666666;
+  color: #666666;
+}
+
+.light .btn-secondary:hover {
+  background: #666666;
+  color: #ffffff;
+}
+
+.light .input {
+  background: #ffffff;
+  border-color: #e0e0e0;
+  color: #000000;
+}
+
+.light .input:focus {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-color: #000000;
+}
+
+.light .text-text-primary {
+  color: #000000;
+}
+
+.light .text-text-secondary {
+  color: #666666;
+}
+
+/* Dark theme styles (default) */
+.dark {
+  --background: #000000;
+  --background-light: #000000;
+  --primary: #000000;
+  --primary-light: #000000;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
 }
 
 /* Feature page specific font */

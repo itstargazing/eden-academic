@@ -99,13 +99,17 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
     <div 
       className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] backdrop-blur-sm"
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100vw',
-        height: '100vh'
+        position: 'fixed !important' as any,
+        top: '0 !important',
+        left: '0 !important',
+        right: '0 !important',
+        bottom: '0 !important',
+        width: '100vw !important',
+        height: '100vh !important',
+        display: 'flex !important',
+        alignItems: 'center !important',
+        justifyContent: 'center !important',
+        zIndex: 9999
       }}
       onClick={(e) => {
         // Close modal when clicking the backdrop
@@ -233,5 +237,8 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
   );
 
   // Use createPortal to render the modal at the document body level
+  // Ensure we have a valid portal target
+  if (typeof window === 'undefined') return null;
+  
   return createPortal(modalContent, document.body);
 } 

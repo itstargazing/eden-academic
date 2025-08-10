@@ -8,6 +8,7 @@ import { getServerSession } from 'next-auth';
 import PageTransition from '@/components/layout/page-transition';
 import Script from 'next/script';
 import { GA_TRACKING_ID } from '@/lib/analytics';
+import { ThemeProvider } from '@/lib/theme-context';
 
 const inter = Inter({ subsets: ['latin'] });
 const jetbrainsMono = JetBrains_Mono({ 
@@ -59,20 +60,22 @@ export default async function RootLayout({
   const session = await getServerSession();
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body className={`${inter.className} ${jetbrainsMono.variable} ${unbounded.variable} ${outfit.variable} antialiased`}>
-        <Providers session={session}>
-          <SidebarProvider>
-            <div className="min-h-screen">
-              <Sidebar />
-              <main className="transition-all duration-300 p-4 sm:p-6 lg:p-8" style={{ marginLeft: 'var(--sidebar-width, 250px)' }}>
-                <PageTransition>
-                  {children}
-                </PageTransition>
-              </main>
-            </div>
-          </SidebarProvider>
-        </Providers>
+        <ThemeProvider>
+          <Providers session={session}>
+            <SidebarProvider>
+              <div className="min-h-screen">
+                <Sidebar />
+                <main className="transition-all duration-300 p-4 sm:p-6 lg:p-8" style={{ marginLeft: 'var(--sidebar-width, 250px)' }}>
+                  <PageTransition>
+                    {children}
+                  </PageTransition>
+                </main>
+              </div>
+            </SidebarProvider>
+          </Providers>
+        </ThemeProvider>
         
         {/* Google Analytics */}
         <Script

@@ -71,6 +71,7 @@ export default function HomePage() {
   const [showLogoSplash, setShowLogoSplash] = useState(true);
   const [showIntroduction, setShowIntroduction] = useState(false);
   const [cursorVisible, setCursorVisible] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
   const { 
     isLoggedIn, 
     username, 
@@ -85,10 +86,19 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Reset states when component mounts
+  // Handle hydration
   useEffect(() => {
-    // Remove this effect as it's redundant with the initial state
+    setIsHydrated(true);
   }, []);
+
+  // Don't render anything until hydrated to avoid mismatch
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+      </div>
+    );
+  }
 
   // First show the logo splash page
   if (showLogoSplash) {
