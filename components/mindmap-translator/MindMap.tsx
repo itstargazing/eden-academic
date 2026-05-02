@@ -78,9 +78,9 @@ const createNodesAndEdges = (parsedNodes: ParsedNode[]) => {
       data: { label: node.text },
       type: 'mindMapNode',
       style: {
-        background: isRoot ? '#3b82f6' : node.level === 1 ? '#10b981' : '#8b5cf6',
-        color: 'white',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
+        background: isRoot ? '#d9d9d9' : '#ebebeb',
+        color: '#0a0a0a',
+        border: isRoot ? '2px solid #b0b0b0' : '1px solid #b0b0b0',
         borderRadius: '8px',
         padding: '8px 12px',
         fontSize: isRoot ? '14px' : '12px',
@@ -98,8 +98,8 @@ const createNodesAndEdges = (parsedNodes: ParsedNode[]) => {
         source: node.parent,
         target: node.id,
         type: 'smoothstep',
-        style: { stroke: 'rgba(255, 255, 255, 0.2)', strokeWidth: 2 },
-        animated: true,
+        style: { stroke: 'rgba(176, 176, 176, 0.95)', strokeWidth: 2 },
+        animated: false,
       });
     }
   });
@@ -132,22 +132,19 @@ export default function MindMap({ text }: MindMapProps) {
         fitView
         attributionPosition="bottom-left"
       >
-        <Background />
-        <Controls />
+        <Background color="#b0b0b0" />
+        <Controls
+          style={{
+            background: '#ebebeb',
+            border: '1px solid #b0b0b0',
+          }}
+        />
         <MiniMap
           style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            backgroundColor: '#d9d9d9',
+            border: '1px solid #b0b0b0',
           }}
-          nodeColor={(node) => {
-            switch (node.style?.background as string) {
-              case '#3b82f6':
-                return '#3b82f6';
-              case '#10b981':
-                return '#10b981';
-              default:
-                return '#8b5cf6';
-            }
-          }}
+          nodeColor={() => '#888888'}
         />
       </ReactFlow>
     </div>

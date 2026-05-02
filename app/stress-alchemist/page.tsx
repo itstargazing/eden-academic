@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { HeartPulse, Activity, Calendar, BookOpen, Brain, MessageSquare, Zap, ArrowRight, BatteryFull, Play, Pause, RotateCcw, Send } from "lucide-react";
+import GalaxyAnimation from "@/components/GalaxyAnimation";
 
 interface ChatMessage {
   id: string;
@@ -197,11 +198,16 @@ export default function StressAlchemistPage() {
   };
   
   return (
-    <div className="space-y-8 feature-page">
+    <div className="split-layout min-h-screen w-full max-w-full">
+      <div className="split-left flex flex-col items-center justify-center overflow-hidden bg-[var(--bg-panel)] p-6 sm:p-10">
+        <GalaxyAnimation label="Stress Alchemist" />
+      </div>
+      <div className="split-right flex min-h-0 w-full max-w-full min-w-0 flex-col gap-6 bg-[var(--bg)] p-6 sm:p-8 xl:overflow-y-auto">
+    <div className="feature-page min-w-0 max-w-full space-y-8">
       <section className="py-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 bg-background border border-white/20 rounded-lg">
-            <HeartPulse size={32} className="text-red-500" />
+          <div className="p-3 bg-background border border-[var(--border)] rounded-lg">
+            <HeartPulse size={32} className="text-[var(--text-dim)]" />
           </div>
           <div>
             <h1 className="page-header">Stress Alchemist</h1>
@@ -214,60 +220,60 @@ export default function StressAlchemistPage() {
         <h2 className="section-title mb-6">Mental Weather Report</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-background p-5 rounded-lg border border-white/10">
+          <div className="bg-background p-5 rounded-lg border border-[var(--border)]">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-medium">Today's Energy</h3>
+              <h3 className="text-[var(--text)] font-medium">Today's Energy</h3>
               <div className="icon-container">
-                <BatteryFull size={18} className="text-red-500" />
+                <BatteryFull size={18} className="text-[var(--text-dim)]" />
               </div>
             </div>
             <div className="flex items-end gap-2">
-              <div className="text-4xl font-bold text-white">{energyLevel}%</div>
+              <div className="text-4xl font-bold text-[var(--text)]">{energyLevel}%</div>
               <div className="text-xs text-text-secondary pb-1">
                 {energyLevel > 75 ? "High energy!" : energyLevel > 50 ? "Moderate" : "Low - rest needed"}
               </div>
             </div>
             <div className="w-full bg-primary rounded-full h-2 mt-3">
-              <div className="bg-white h-2 rounded-full transition-all duration-500" style={{ width: `${energyLevel}%` }}></div>
+              <div className="bg-[var(--text-dim)] h-2 rounded-full transition-all duration-500" style={{ width: `${energyLevel}%` }}></div>
             </div>
           </div>
           
-          <div className="bg-background p-5 rounded-lg border border-white/10">
+          <div className="bg-background p-5 rounded-lg border border-[var(--border)]">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-medium">Stress Level</h3>
+              <h3 className="text-[var(--text)] font-medium">Stress Level</h3>
               <div className="icon-container">
-                <Activity size={18} className="text-red-500" />
+                <Activity size={18} className="text-[var(--text-dim)]" />
               </div>
             </div>
             <div className="flex items-end gap-2">
-              <div className="text-4xl font-bold text-white capitalize">{stressLevel}</div>
+              <div className="text-4xl font-bold text-[var(--text)] capitalize">{stressLevel}</div>
               <div className="text-xs text-text-secondary pb-1">
                 {stressLevel === "low" ? "Great!" : stressLevel === "medium" ? "Manageable" : "Let's work on this"}
               </div>
             </div>
             <div className="flex justify-between mt-3">
-              <span className={`text-xs ${stressLevel === "low" ? "text-white font-bold" : "text-text-secondary"}`}>Low</span>
-              <span className={`text-xs ${stressLevel === "medium" ? "text-white font-bold" : "text-text-secondary"}`}>Medium</span>
-              <span className={`text-xs ${stressLevel === "high" ? "text-white font-bold" : "text-text-secondary"}`}>High</span>
+              <span className={`text-xs ${stressLevel === "low" ? "text-[var(--text)] font-bold" : "text-text-secondary"}`}>Low</span>
+              <span className={`text-xs ${stressLevel === "medium" ? "text-[var(--text)] font-bold" : "text-text-secondary"}`}>Medium</span>
+              <span className={`text-xs ${stressLevel === "high" ? "text-[var(--text)] font-bold" : "text-text-secondary"}`}>High</span>
             </div>
           </div>
           
-          <div className="bg-background p-5 rounded-lg border border-white/10">
+          <div className="bg-background p-5 rounded-lg border border-[var(--border)]">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-white font-medium">How do you feel?</h3>
+              <h3 className="text-[var(--text)] font-medium">How do you feel?</h3>
               <div className="icon-container">
-                <Brain size={18} className="text-red-500" />
+                <Brain size={18} className="text-[var(--text-dim)]" />
               </div>
             </div>
             
-            <div className="grid grid-cols-5 gap-2 my-2">
+            <div className="my-2 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
               {["stressed", "tired", "neutral", "focused", "energized"].map((moodOption) => (
                 <button 
                   key={moodOption}
                   className={`p-2 rounded-md text-xs text-center transition-colors ${
                     mood === moodOption 
-                      ? 'bg-white text-black' 
-                      : 'bg-primary border border-white/10 text-text-secondary hover:text-white'
+                      ? 'bg-[var(--bg-hover)] border border-[var(--text)] text-[var(--text)]'
+                      : 'bg-primary border border-[var(--border)] text-text-secondary hover:text-[var(--text)]'
                   }`}
                   onClick={() => setMood(moodOption)}
                 >
@@ -279,17 +285,17 @@ export default function StressAlchemistPage() {
         </div>
       </section>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="lg:flex-[2]">
+      <div className="flex flex-col gap-8 xl:flex-row">
+        <div className="min-w-0 flex-1 xl:min-w-0 xl:flex-[2]">
           <section className="card h-full">
-            <div className="flex flex-wrap border-b border-white/10 mb-6">
+            <div className="flex flex-wrap border-b border-[var(--border)] mb-6">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
                     activeTab === tab.id
-                      ? "border-white text-white"
-                      : "border-transparent text-text-secondary hover:text-white"
+                      ? "border-[var(--text)] text-[var(--text)]"
+                      : "border-transparent text-text-secondary hover:text-[var(--text)]"
                   }`}
                   onClick={() => setActiveTab(tab.id)}
                 >
@@ -302,13 +308,13 @@ export default function StressAlchemistPage() {
             <div className="space-y-6">
               {activeTab === "today" && (
                 <>
-                  <div className="bg-background border border-white/20 p-5 rounded-lg">
+                  <div className="bg-background border border-[var(--border)] p-5 rounded-lg">
                     <div className="flex items-start gap-4">
-                      <div className="p-3 rounded-full bg-white mt-1">
-                        <Zap size={20} className="text-black" />
+                      <div className="p-3 rounded-full bg-[var(--bg)] mt-1 border border-[var(--border)]">
+                        <Zap size={20} className="text-[var(--text)]" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-medium text-white mb-2">Today's Resilience Challenge</h3>
+                          <div className="min-w-0 flex-1">
+                        <h3 className="text-lg font-medium text-[var(--text)] mb-2">Today's Resilience Challenge</h3>
                         <p className="text-text-secondary mb-4">Practice reframing a recent academic setback as a learning opportunity. Spend 3 minutes writing down what you learned and how it might benefit you in the future.</p>
                         
                         {!exerciseStarted ? (
@@ -319,7 +325,7 @@ export default function StressAlchemistPage() {
                         ) : (
                           <div className="space-y-3">
                             <textarea
-                              className="w-full p-3 bg-primary border border-white/10 rounded-md text-white"
+                              className="w-full p-3 bg-primary border border-[var(--border)] rounded-md text-[var(--text)]"
                               rows={4}
                               placeholder="Describe a recent setback and what you learned from it..."
                               value={exerciseText}
@@ -338,11 +344,11 @@ export default function StressAlchemistPage() {
                     </div>
                   </div>
                   
-                  <div className="p-5 rounded-lg bg-background border border-white/10 h-full">
-                    <h3 className="text-lg font-medium text-white mb-3">Mindfulness Micro-Break</h3>
+                  <div className="p-5 rounded-lg bg-background border border-[var(--border)] h-full">
+                    <h3 className="text-lg font-medium text-[var(--text)] mb-3">Mindfulness Micro-Break</h3>
                     <p className="text-text-secondary mb-4">Your calendar shows 3 consecutive meetings this afternoon. Consider taking a 2-minute breathing break between each one.</p>
                     
-                    <div className="p-6 bg-primary rounded-md border border-white/10">
+                    <div className="p-6 bg-primary rounded-md border border-[var(--border)]">
                       <div className="text-center">
                         {!isBreathing && breathPhase === "ready" && (
                           <>
@@ -356,12 +362,12 @@ export default function StressAlchemistPage() {
                         
                         {isBreathing && (
                           <div className="space-y-4">
-                            <div className="text-4xl font-bold text-white">
+                            <div className="text-4xl font-bold text-[var(--text)]">
                               {breathPhase === "inhale" && "Breathe In..."}
                               {breathPhase === "hold" && "Hold..."}
                               {breathPhase === "exhale" && "Breathe Out..."}
                             </div>
-                            <div className="text-6xl font-mono text-white">{breathCount}</div>
+                            <div className="text-6xl font-mono text-[var(--text)]">{breathCount}</div>
                             <div className="text-sm text-text-secondary">Cycle {breathCycles + 1} of 5</div>
                             
                             <div className="flex justify-center gap-2 mt-4">
@@ -394,18 +400,18 @@ export default function StressAlchemistPage() {
               
               {activeTab === "insights" && (
                 <div className="space-y-6">
-                  <div className="p-5 rounded-lg bg-background border border-white/10">
-                    <h3 className="text-lg font-medium text-white mb-3">Weekly Patterns</h3>
+                  <div className="p-5 rounded-lg bg-background border border-[var(--border)]">
+                    <h3 className="text-lg font-medium text-[var(--text)] mb-3">Weekly Patterns</h3>
                     <p className="text-text-secondary mb-4">Based on your data, we've observed the following patterns:</p>
                     
                     <div className="space-y-4">
                       {insights.map((insight, index) => (
                         <div key={index} className="flex items-start gap-3">
                           <div className="icon-container">
-                            <insight.icon size={16} className="text-red-500" />
+                            <insight.icon size={16} className="text-[var(--text-dim)]" />
                           </div>
                           <div>
-                            <h4 className="font-medium text-white">{insight.title}</h4>
+                            <h4 className="font-medium text-[var(--text)]">{insight.title}</h4>
                             <p className="text-sm text-text-secondary">{insight.description}</p>
                           </div>
                         </div>
@@ -413,8 +419,8 @@ export default function StressAlchemistPage() {
                     </div>
                   </div>
                   
-                  <div className="p-5 rounded-lg bg-background border border-white/10">
-                    <h3 className="text-lg font-medium text-white mb-3">Academic Pressure Points</h3>
+                  <div className="p-5 rounded-lg bg-background border border-[var(--border)]">
+                    <h3 className="text-lg font-medium text-[var(--text)] mb-3">Academic Pressure Points</h3>
                     <div className="flex items-center justify-between text-xs text-text-secondary mb-2">
                       <span>Low Stress</span>
                       <span>High Stress</span>
@@ -423,12 +429,12 @@ export default function StressAlchemistPage() {
                     {pressurePoints.map((point, index) => (
                       <div key={index} className="mb-3 last:mb-0">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm text-white">{point.activity}</span>
+                          <span className="text-sm text-[var(--text)]">{point.activity}</span>
                           <span className="text-xs text-text-secondary">{point.level}/10</span>
                         </div>
                         <div className="w-full bg-primary rounded-full h-2">
                           <div 
-                            className="h-2 rounded-full bg-white transition-all duration-500" 
+                            className="h-2 rounded-full bg-[var(--text-dim)] transition-all duration-500"
                             style={{ width: `${point.level * 10}%` }}
                           ></div>
                         </div>
@@ -440,18 +446,18 @@ export default function StressAlchemistPage() {
               
               {activeTab === "history" && (
                 <div className="space-y-6">
-                  <div className="p-5 rounded-lg bg-background border border-white/10">
-                    <h3 className="text-lg font-medium text-white mb-3">Mood Calendar</h3>
+                  <div className="p-5 rounded-lg bg-background border border-[var(--border)]">
+                    <h3 className="text-lg font-medium text-[var(--text)] mb-3">Mood Calendar</h3>
                     <div className="grid grid-cols-7 gap-2">
                       {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                         <div 
                           key={day} 
                           className={`aspect-square flex items-center justify-center rounded-md text-sm cursor-pointer transition-colors ${
                             day <= 15 
-                              ? 'bg-primary border border-white/10 text-text-secondary hover:border-white/30' 
+                              ? 'bg-primary border border-[var(--border)] text-text-secondary hover:border-[var(--text-dim)]'
                               : day === new Date().getDate() 
-                                ? 'bg-white text-black' 
-                                : 'bg-background border border-white/10 text-text-secondary hover:border-white/30'
+                                ? 'bg-[var(--bg-hover)] border border-[var(--text)] text-[var(--text)]'
+                                : 'bg-background border border-[var(--border)] text-text-secondary hover:border-[var(--text-dim)]'
                           }`}
                         >
                           {day}
@@ -460,28 +466,28 @@ export default function StressAlchemistPage() {
                     </div>
                   </div>
                   
-                  <div className="p-5 rounded-lg bg-background border border-white/10">
-                    <h3 className="text-lg font-medium text-white mb-3">Progress Over Time</h3>
+                  <div className="p-5 rounded-lg bg-background border border-[var(--border)]">
+                    <h3 className="text-lg font-medium text-[var(--text)] mb-3">Progress Over Time</h3>
                     <p className="text-text-secondary mb-4">You've completed 12 resilience exercises this month. Your average stress level has decreased from 7.2 to 5.4.</p>
                     
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-text-secondary">Exercises Completed</span>
-                        <span className="text-white">12/20</span>
+                        <span className="text-[var(--text)]">12/20</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-text-secondary">Breathing Sessions</span>
-                        <span className="text-white">8 sessions</span>
+                        <span className="text-[var(--text)]">8 sessions</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-text-secondary">Average Mood</span>
-                        <span className="text-white">Improving ↑</span>
+                        <span className="text-[var(--text)]">Improving ↑</span>
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
-                      <button className="text-white hover:text-text-secondary text-sm">View Detailed Analytics</button>
-                      <button className="text-white hover:text-text-secondary text-sm">Export Data</button>
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border)]">
+                      <button className="text-[var(--text)] hover:text-text-secondary text-sm">View Detailed Analytics</button>
+                      <button className="text-[var(--text)] hover:text-text-secondary text-sm">Export Data</button>
                     </div>
                   </div>
                 </div>
@@ -490,12 +496,12 @@ export default function StressAlchemistPage() {
           </section>
         </div>
         
-        <div className="lg:flex-1">
-          <section className="card sticky top-8 h-full">
+        <div className="min-w-0 flex-1 xl:max-w-md xl:flex-shrink-0">
+          <section className="card h-full xl:sticky xl:top-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="section-title mb-0">AI Therapist</h2>
               <div className="icon-container">
-                <MessageSquare size={18} className="text-red-500" />
+                <MessageSquare size={18} className="text-[var(--text-dim)]" />
               </div>
             </div>
             
@@ -506,10 +512,10 @@ export default function StressAlchemistPage() {
               {chatMessages.map((message) => (
                 <div
                   key={message.id}
-                  className={`p-3 rounded-lg text-sm ${
+                  className={`p-3 rounded-lg text-sm break-words min-w-0 ${
                     message.isUser 
-                      ? "bg-white text-black ml-4" 
-                      : "bg-background border border-white/10 text-text-secondary mr-4"
+                      ? "bg-[var(--bg-hover)] border border-[var(--border)] text-[var(--text)] ml-4"
+                      : "bg-background border border-[var(--border)] text-text-secondary mr-4"
                   }`}
                 >
                   {message.text}
@@ -517,7 +523,7 @@ export default function StressAlchemistPage() {
               ))}
               
               {isTyping && (
-                <div className="bg-background border border-white/10 p-3 rounded-lg mr-4">
+                <div className="bg-background border border-[var(--border)] p-3 rounded-lg mr-4">
                   <div className="flex gap-1">
                     <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
                     <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
@@ -531,19 +537,19 @@ export default function StressAlchemistPage() {
               <div className="space-y-2 mb-4">
                 <button 
                   onClick={() => handleQuickResponse("Yes, I have a paper due tomorrow I'm not ready for.")}
-                  className="w-full p-2 text-sm text-left rounded-md bg-background hover:bg-primary border border-white/10 text-text-secondary"
+                className="w-full p-2 text-sm text-left rounded-md bg-background hover:bg-primary border border-[var(--border)] text-text-secondary"
                 >
                   Yes, I have a paper due tomorrow I'm not ready for.
                 </button>
                 <button 
                   onClick={() => handleQuickResponse("I'm trying to get ahead on my workload.")}
-                  className="w-full p-2 text-sm text-left rounded-md bg-background hover:bg-primary border border-white/10 text-text-secondary"
+                className="w-full p-2 text-sm text-left rounded-md bg-background hover:bg-primary border border-[var(--border)] text-text-secondary"
                 >
                   I'm trying to get ahead on my workload.
                 </button>
                 <button 
                   onClick={() => handleQuickResponse("I've been procrastinating and now I'm behind.")}
-                  className="w-full p-2 text-sm text-left rounded-md bg-background hover:bg-primary border border-white/10 text-text-secondary"
+                className="w-full p-2 text-sm text-left rounded-md bg-background hover:bg-primary border border-[var(--border)] text-text-secondary"
                 >
                   I've been procrastinating and now I'm behind.
                 </button>
@@ -557,7 +563,7 @@ export default function StressAlchemistPage() {
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage(userInput)}
                 placeholder="Type your message..."
-                className="flex-1 p-2 bg-background border border-white/10 rounded-md text-white text-sm"
+                className="flex-1 p-2 bg-background border border-[var(--border)] rounded-md text-[var(--text)] text-sm"
               />
               <button 
                 onClick={() => sendMessage(userInput)}
@@ -579,7 +585,7 @@ export default function StressAlchemistPage() {
                   }]);
                   setShowFreeChat(false);
                 }}
-                className="text-text-secondary hover:text-white text-sm"
+                className="text-text-secondary hover:text-[var(--text)] text-sm"
               >
                 Start Fresh
               </button>
@@ -592,6 +598,8 @@ export default function StressAlchemistPage() {
             </div>
           </section>
         </div>
+      </div>
+    </div>
       </div>
     </div>
   );

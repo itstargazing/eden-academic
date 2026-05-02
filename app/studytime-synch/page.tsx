@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Clock, Users, BarChart, Play, Pause, Repeat, UserPlus } from 'lucide-react';
+import { Clock, Users, BarChart, Play, Pause, Repeat } from 'lucide-react';
+import GalaxyAnimation from '@/components/GalaxyAnimation';
 import { useUserStore } from '@/store/user-store';
 import { v4 as uuidv4 } from 'uuid';
-import React from 'react';
-import Image from 'next/image';
 
 interface StudyPartner {
   id: string;
@@ -132,11 +131,16 @@ export default function StudyTimeSynchPage() {
   };
 
   return (
-    <div className="space-y-8 feature-page">
+    <div className="split-layout min-h-screen w-full max-w-full">
+      <div className="split-left flex flex-col items-center justify-center overflow-hidden bg-[var(--bg-panel)] p-6 sm:p-10">
+        <GalaxyAnimation label="StudyTime Synch" />
+      </div>
+      <div className="split-right flex min-h-0 w-full max-w-full min-w-0 flex-col gap-6 bg-[var(--bg)] p-6 sm:p-8 xl:overflow-y-auto">
+    <div className="space-y-8 feature-page min-w-0 max-w-full">
       <section className="py-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 bg-background border border-white/20 rounded-lg">
-            <Clock size={32} className="text-blue-500" />
+          <div className="p-3 bg-background border border-[var(--border)] rounded-lg">
+            <Clock size={32} className="text-[var(--text)]" />
           </div>
           <div>
             <h1 className="page-header">StudyTime Synch</h1>
@@ -145,12 +149,12 @@ export default function StudyTimeSynchPage() {
         </div>
       </section>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid min-w-0 max-w-full grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Timer Card */}
         <div className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-title mb-0">Focus Timer</h2>
-            <Clock className="text-white" size={20} />
+            <Clock className="text-[var(--text)]" size={20} />
           </div>
           
           <div className="space-y-6">
@@ -163,7 +167,7 @@ export default function StudyTimeSynchPage() {
             />
             
             <div className="flex justify-center">
-              <div className="text-5xl font-mono font-bold text-white tabular-nums">
+              <div className="text-5xl font-mono font-bold text-[var(--text)] tabular-nums">
                 {formatTime(timer)}
               </div>
             </div>
@@ -195,11 +199,11 @@ export default function StudyTimeSynchPage() {
           <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-text-secondary">Current Focus Level</span>
-              <span className="text-sm font-medium text-white">{focusLevel}%</span>
+              <span className="text-sm font-medium text-[var(--text)]">{focusLevel}%</span>
             </div>
             <div className="h-2 w-full bg-background rounded-full overflow-hidden">
               <div 
-                className="h-full bg-accent rounded-full"
+                className="h-full bg-[var(--text-dim)] rounded-full"
                 style={{ width: `${focusLevel}%` }}
               />
             </div>
@@ -210,19 +214,19 @@ export default function StudyTimeSynchPage() {
         <div className="card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-title mb-0">Focus Stats</h2>
-            <BarChart className="text-white" size={20} />
+            <BarChart className="text-[var(--text)]" size={20} />
           </div>
           
           {isRunning ? (
             <div className="space-y-4">
-              <div className="p-3 rounded-md bg-background border border-white/10">
+              <div className="p-3 rounded-md bg-background border border-[var(--border)]">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-text-secondary">Session Duration</span>
-                  <span className="text-sm font-medium text-white">{formatTime(timer)}</span>
+                  <span className="text-sm font-medium text-[var(--text)]">{formatTime(timer)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-text-secondary">Average Focus</span>
-                  <span className="text-sm font-medium text-white">{focusLevel}%</span>
+                  <span className="text-sm font-medium text-[var(--text)]">{focusLevel}%</span>
                 </div>
               </div>
             </div>
@@ -237,7 +241,7 @@ export default function StudyTimeSynchPage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <h2 className="section-title mb-0">Available Study Partners</h2>
-            <Users className="text-white" size={20} />
+            <Users className="text-[var(--text)]" size={20} />
           </div>
         </div>
         
@@ -245,14 +249,14 @@ export default function StudyTimeSynchPage() {
           {availablePartners.map(partner => (
             <div 
               key={partner.id}
-              className="p-4 rounded-lg bg-background border border-white/10"
+              className="p-4 rounded-lg bg-background border border-[var(--border)]"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="font-medium text-white">{partner.name}</span>
+                <span className="font-medium text-[var(--text)]">{partner.name}</span>
                 <span className={`text-xs px-2 py-1 rounded-full ${
                   partner.status === 'studying' 
-                    ? 'bg-accent/20 text-accent' 
-                    : 'bg-white/10 text-white/70'
+                    ? 'bg-[var(--bg-hover)] text-[var(--text)] border border-[var(--border)]'
+                    : 'bg-[var(--bg-hover)] text-[var(--text-dim)]'
                 }`}>
                   {partner.status}
                 </span>
@@ -263,7 +267,7 @@ export default function StudyTimeSynchPage() {
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-background-light rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-accent rounded-full"
+                      className="h-full bg-[var(--text-dim)] rounded-full"
                       style={{ width: `${partner.focusScore}%` }}
                     />
                   </div>
@@ -288,8 +292,8 @@ export default function StudyTimeSynchPage() {
 
       {/* Connection Modal */}
       {showConnectModal && selectedPartner && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-primary p-6 rounded-lg max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-[rgba(176,176,176,0.35)] backdrop-blur-[1px] flex items-center justify-center z-50">
+          <div className="bg-[var(--bg-panel)] border border-[var(--border)] p-6 rounded-lg max-w-full w-full mx-4">
             <h3 className="text-xl font-semibold mb-4">Connect with {selectedPartner.name}</h3>
             <p className="text-text-secondary mb-6">
               Would you like to connect with {selectedPartner.name} who is currently studying {selectedPartner.topic}?
@@ -297,13 +301,13 @@ export default function StudyTimeSynchPage() {
             <div className="flex gap-4">
               <button
                 onClick={() => connectWithPartner(selectedPartner.id)}
-                className="flex-1 py-2 px-4 bg-accent hover:bg-accent-light rounded-md"
+                className="flex-1 py-2 px-4 border border-[var(--border)] bg-[var(--bg-panel)] text-[var(--text)] rounded-md hover:bg-[var(--bg-hover)]"
               >
                 Connect
               </button>
               <button
                 onClick={() => setShowConnectModal(false)}
-                className="flex-1 py-2 px-4 bg-primary-light hover:bg-primary-dark rounded-md"
+                className="flex-1 py-2 px-4 border border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text)] rounded-md"
               >
                 Cancel
               </button>
@@ -311,6 +315,8 @@ export default function StudyTimeSynchPage() {
           </div>
         </div>
       )}
+    </div>
+      </div>
     </div>
   );
 } 

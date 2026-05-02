@@ -23,44 +23,43 @@ export default function FocusPulse({ onUpdate }: FocusPulseProps) {
   };
 
   return (
-    <div className="space-y-6 p-6 bg-background/50 rounded-lg border border-white/10">
-      <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+    <div className="min-w-0 space-y-6 rounded-lg border border-[var(--border)] bg-[var(--bg-panel)]/90 p-6">
+      <h3 className="flex items-center gap-2 text-xl font-semibold text-[var(--text)]">
         <Brain size={20} />
-        Today's Focus Pulse
+        Today&apos;s Focus Pulse
       </h3>
 
       <div className="space-y-6">
-        {/* Focus Slider */}
         <div className="space-y-2">
-          <label className="text-sm text-white/70">How focused do you feel today?</label>
-          <div className="flex items-center gap-4">
+          <label className="text-sm text-[var(--text-dim)]">How focused do you feel today?</label>
+          <div className="flex min-w-0 items-center gap-4">
             <input
               type="range"
               min="0"
               max="100"
               value={focus}
-              onChange={(e) => setFocus(parseInt(e.target.value))}
-              className="w-full h-2 bg-background rounded-lg appearance-none cursor-pointer"
+              onChange={(e) => setFocus(parseInt(e.target.value, 10))}
+              className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-lg bg-[var(--bg)]"
             />
-            <span className="text-white min-w-[3ch]">{focus}%</span>
+            <span className="min-w-[3ch] shrink-0 text-[var(--text)]">{focus}%</span>
           </div>
         </div>
 
-        {/* Energy Level */}
         <div className="space-y-2">
-          <label className="text-sm text-white/70 flex items-center gap-2">
+          <label className="flex items-center gap-2 text-sm text-[var(--text-dim)]">
             <Battery size={16} />
             Energy level right now?
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid min-w-0 grid-cols-3 gap-2">
             {(['Low', 'Medium', 'High'] as const).map((level) => (
               <button
                 key={level}
+                type="button"
                 onClick={() => setEnergy(level)}
-                className={`p-2 rounded-md text-sm transition-colors ${
+                className={`min-w-0 rounded-md p-2 text-sm transition-colors ${
                   energy === level
-                    ? 'bg-white/20 text-white'
-                    : 'bg-background hover:bg-white/10 text-white/70'
+                    ? 'border border-[var(--text)] bg-[var(--bg-hover)] text-[var(--text)]'
+                    : 'border border-[var(--border)] bg-[var(--bg)] text-[var(--text-dim)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]'
                 }`}
               >
                 {level}
@@ -69,21 +68,21 @@ export default function FocusPulse({ onUpdate }: FocusPulseProps) {
           </div>
         </div>
 
-        {/* Distraction Type */}
         <div className="space-y-2">
-          <label className="text-sm text-white/70 flex items-center gap-2">
+          <label className="flex items-center gap-2 text-sm text-[var(--text-dim)]">
             <AlertCircle size={16} />
             Biggest distraction?
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid min-w-0 grid-cols-2 gap-2">
             {distractions.map((d) => (
               <button
                 key={d}
+                type="button"
                 onClick={() => setDistraction(d)}
-                className={`p-2 rounded-md text-sm transition-colors ${
+                className={`min-w-0 rounded-md p-2 text-sm transition-colors ${
                   distraction === d
-                    ? 'bg-white/20 text-white'
-                    : 'bg-background hover:bg-white/10 text-white/70'
+                    ? 'border border-[var(--text)] bg-[var(--bg-hover)] text-[var(--text)]'
+                    : 'border border-[var(--border)] bg-[var(--bg)] text-[var(--text-dim)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]'
                 }`}
               >
                 {d}
@@ -92,13 +91,10 @@ export default function FocusPulse({ onUpdate }: FocusPulseProps) {
           </div>
         </div>
 
-        <button
-          onClick={handleSubmit}
-          className="w-full py-2 px-4 bg-white/10 hover:bg-white/20 text-white rounded-md transition-colors"
-        >
+        <button type="button" onClick={handleSubmit} className="btn btn-primary w-full py-2 px-4">
           Update Focus Status
         </button>
       </div>
     </div>
   );
-} 
+}

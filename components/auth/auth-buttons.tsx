@@ -8,7 +8,7 @@ export function AuthButtons() {
     <div className="space-y-4">
       <button
         onClick={() => signIn('google', { callbackUrl: '/' })}
-        className="flex items-center justify-center gap-3 w-full px-4 py-2.5 bg-white hover:bg-white/90 text-black font-medium rounded-lg transition-colors"
+        className="flex items-center justify-center gap-3 w-full px-4 py-2.5 border border-[var(--border)] bg-[var(--bg-panel)] hover:bg-[var(--bg-hover)] text-[var(--text)] font-medium rounded-lg transition-colors"
       >
         <Image
           src="/images/google.svg"

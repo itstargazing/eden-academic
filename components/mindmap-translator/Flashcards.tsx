@@ -57,26 +57,26 @@ export default function Flashcards({ text }: FlashcardsProps) {
   
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'text-green-400';
-      case 'medium': return 'text-yellow-400';
-      case 'hard': return 'text-red-400';
-      default: return 'text-blue-400';
+      case 'easy': return 'text-[var(--text)]';
+      case 'medium': return 'text-[var(--text)]';
+      case 'hard': return 'text-[var(--text)]';
+      default: return 'text-[var(--text)]';
     }
   };
   
   const getDifficultyBg = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'bg-green-600';
-      case 'medium': return 'bg-yellow-600';
-      case 'hard': return 'bg-red-600';
-      default: return 'bg-blue-600';
+      case 'easy': return 'bg-[var(--bg-panel)] border border-[var(--border)]';
+      case 'medium': return 'bg-[var(--bg-panel)] border border-[var(--border)]';
+      case 'hard': return 'bg-[var(--bg-panel)] border border-[var(--border)]';
+      default: return 'bg-[var(--bg-panel)] border border-[var(--border)]';
     }
   };
   
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-2 border-white border-t-transparent rounded-full mb-4"></div>
+        <div className="animate-spin h-8 w-8 border-2 border-[var(--text)] border-t-transparent rounded-full mb-4"></div>
         <p className="text-text-secondary">Generating flashcards from your notes...</p>
       </div>
     );
@@ -88,7 +88,7 @@ export default function Flashcards({ text }: FlashcardsProps) {
         <div className="mb-4">
           <RotateCcw size={48} className="mx-auto opacity-40" />
         </div>
-        <h3 className="text-lg font-medium text-white mb-2">No flashcards generated</h3>
+        <h3 className="text-lg font-medium text-[var(--text)] mb-2">No flashcards generated</h3>
         <p>The text doesn't contain enough structured content to create flashcards.</p>
         <p className="text-sm mt-2">Try adding:</p>
         <ul className="text-sm mt-2 list-disc list-inside space-y-1">
@@ -110,7 +110,7 @@ export default function Flashcards({ text }: FlashcardsProps) {
           </p>
           <div className="flex items-center gap-2">
             <span className="text-xs text-text-secondary">Difficulty:</span>
-            <span className={`text-xs px-2 py-1 rounded-full ${getDifficultyColor(currentCard.difficulty)} bg-white/10`}>
+            <span className={`text-xs px-2 py-1 rounded-full ${getDifficultyColor(currentCard.difficulty)} bg-[var(--bg-hover)]`}>
               {currentCard.difficulty}
             </span>
           </div>
@@ -139,14 +139,14 @@ export default function Flashcards({ text }: FlashcardsProps) {
             >
               {/* Front - Question */}
               <div className="absolute inset-0 backface-hidden">
-                <div className="h-full flex flex-col justify-center p-6 bg-background rounded-xl border border-white/20">
+                <div className="h-full flex flex-col justify-center p-6 bg-background rounded-xl border border-[var(--border)]">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs text-blue-400">Question</span>
+                    <span className="text-xs text-[var(--text)]">Question</span>
                     <span className="text-xs text-text-secondary">
                       Concept: {currentCard.concept}
                     </span>
                   </div>
-                  <p className="text-lg text-white font-medium text-center flex-1 flex items-center justify-center">
+                  <p className="text-lg text-[var(--text)] font-medium text-center flex-1 flex items-center justify-center">
                     {currentCard.question}
                   </p>
                   <div className="text-center mt-4">
@@ -157,18 +157,18 @@ export default function Flashcards({ text }: FlashcardsProps) {
               
               {/* Back - Answer */}
               <div className="absolute inset-0 backface-hidden rotate-y-180">
-                <div className={`h-full flex flex-col justify-center p-6 ${getDifficultyBg(currentCard.difficulty)} rounded-xl`}>
+                <div className={`h-full flex flex-col justify-center p-6 ${getDifficultyBg(currentCard.difficulty)} rounded-xl text-[var(--text)]`}>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs text-white/90">Answer</span>
-                    <span className="text-xs text-white/70">
+                    <span className="text-xs text-[var(--text)]">Answer</span>
+                    <span className="text-xs text-[var(--text-dim)]">
                       {currentCard.difficulty} level
                     </span>
                   </div>
-                  <p className="text-lg text-white text-center flex-1 flex items-center justify-center">
+                  <p className="text-lg text-[var(--text)] text-center flex-1 flex items-center justify-center">
                     {currentCard.answer}
                   </p>
                   <div className="text-center mt-4">
-                    <p className="text-xs text-white/70">Click or press space to see question</p>
+                    <p className="text-xs text-[var(--text-dim)]">Click or press space to see question</p>
                   </div>
                 </div>
               </div>
@@ -185,9 +185,9 @@ export default function Flashcards({ text }: FlashcardsProps) {
             setIsFlipped(false);
           }}
           disabled={currentIndex === 0}
-          className="p-2 rounded-full hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 rounded-full hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          <ChevronLeft size={24} className="text-white" />
+          <ChevronLeft size={24} className="text-[var(--text)]" />
         </button>
         
         <div className="flex gap-1">
@@ -199,7 +199,7 @@ export default function Flashcards({ text }: FlashcardsProps) {
                 setIsFlipped(false);
               }}
               className={`w-3 h-3 rounded-full transition-colors ${
-                i === currentIndex ? getDifficultyBg(card.difficulty) : 'bg-white/20 hover:bg-white/30'
+                i === currentIndex ? 'bg-[var(--text-dim)]' : 'bg-[var(--bg-hover)] hover:bg-[var(--border)]'
               }`}
               title={`Card ${i + 1}: ${card.concept} (${card.difficulty})`}
             />
@@ -213,23 +213,23 @@ export default function Flashcards({ text }: FlashcardsProps) {
             setIsFlipped(false);
           }}
           disabled={currentIndex === cards.length - 1}
-          className="p-2 rounded-full hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 rounded-full hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          <ChevronRight size={24} className="text-white" />
+          <ChevronRight size={24} className="text-[var(--text)]" />
         </button>
       </div>
       
       {/* Study Progress */}
-      <div className="mt-6 p-4 bg-background rounded-lg border border-white/10">
+      <div className="mt-6 p-4 bg-background rounded-lg border border-[var(--border)]">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-white">Study Progress</span>
+          <span className="text-sm font-medium text-[var(--text)]">Study Progress</span>
           <span className="text-sm text-text-secondary">
             {Math.round(((currentIndex + 1) / cards.length) * 100)}% complete
           </span>
         </div>
-        <div className="w-full bg-white/10 rounded-full h-2">
+        <div className="w-full bg-[var(--bg-hover)] rounded-full h-2">
           <div 
-            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+            className="bg-[var(--text-dim)] h-2 rounded-full transition-all duration-300"
             style={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
           />
         </div>

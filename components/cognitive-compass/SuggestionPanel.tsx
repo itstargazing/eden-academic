@@ -36,35 +36,32 @@ export default function SuggestionPanel({ profile, pulseData }: SuggestionPanelP
   };
 
   return (
-    <div className="space-y-6 p-6 bg-background rounded-lg border border-white/10">
-      <h3 className="text-xl font-semibold text-white">Smart Suggestions</h3>
+    <div className="min-w-0 space-y-6 rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-6">
+      <h3 className="text-xl font-semibold text-[var(--text)]">Smart Suggestions</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Soundscape */}
-        <div className="p-4 bg-background rounded-lg border border-white/10">
-          <div className="flex items-center gap-2 mb-2">
-            <Music size={18} className="text-white/70" />
-            <h4 className="text-white">Ideal Soundscape</h4>
+      <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="min-w-0 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <Music size={18} className="text-[var(--text-dim)]" />
+            <h4 className="text-[var(--text)]">Ideal Soundscape</h4>
           </div>
-          <p className="text-white/70">{getSoundscape()}</p>
+          <p className="break-words text-[var(--text-dim)]">{getSoundscape()}</p>
         </div>
 
-        {/* Study Block */}
-        <div className="p-4 bg-background rounded-lg border border-white/10">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock size={18} className="text-white/70" />
-            <h4 className="text-white">Suggested Study Block</h4>
+        <div className="min-w-0 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <Clock size={18} className="text-[var(--text-dim)]" />
+            <h4 className="text-[var(--text)]">Suggested Study Block</h4>
           </div>
-          <p className="text-white/70">{getStudyBlock()}</p>
+          <p className="break-words text-[var(--text-dim)]">{getStudyBlock()}</p>
         </div>
 
-        {/* Partner Type */}
-        <div className="p-4 bg-background rounded-lg border border-white/10">
-          <div className="flex items-center gap-2 mb-2">
-            <Users size={18} className="text-white/70" />
-            <h4 className="text-white">Partner Match</h4>
+        <div className="min-w-0 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <Users size={18} className="text-[var(--text-dim)]" />
+            <h4 className="text-[var(--text)]">Partner Match</h4>
           </div>
-          <p className="text-white/70">
+          <p className="break-words text-[var(--text-dim)]">
             {profile.focusStyle === 'Deep' 
               ? 'Deep Focus Partners Online'
               : profile.focusStyle === 'Sprint'
@@ -73,15 +70,14 @@ export default function SuggestionPanel({ profile, pulseData }: SuggestionPanelP
           </p>
         </div>
 
-        {/* Challenge */}
-        <div className="p-4 bg-background rounded-lg border border-white/10">
-          <div className="flex items-center gap-2 mb-2">
-            <Target size={18} className="text-white/70" />
-            <h4 className="text-white">Mini Challenge</h4>
+        <div className="min-w-0 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <Target size={18} className="text-[var(--text-dim)]" />
+            <h4 className="text-[var(--text)]">Mini Challenge</h4>
           </div>
-          <p className="text-white/70">{getChallenge()}</p>
+          <p className="break-words text-[var(--text-dim)]">{getChallenge()}</p>
         </div>
       </div>
     </div>
   );
-} 
+}

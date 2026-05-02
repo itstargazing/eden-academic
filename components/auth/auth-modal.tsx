@@ -14,7 +14,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-[rgba(176,176,176,0.45)] backdrop-blur-sm z-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -23,7 +23,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
           {/* Modal */}
           <motion.div
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] md:w-full max-w-[420px] bg-black border border-white/10 p-6 md:p-8 rounded-xl shadow-2xl z-50 mx-auto"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] md:w-full max-w-[420px] bg-[var(--bg-panel)] border border-[var(--border)] p-6 md:p-8 rounded-xl shadow-2xl z-50 mx-auto"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
@@ -31,12 +31,12 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-white font-unbounded">Welcome to EDEN</h2>
+                <h2 className="text-2xl font-bold text-[var(--text)] font-unbounded">Welcome to EDEN</h2>
                 <p className="text-text-secondary mt-1">Sign in to continue</p>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                className="p-2 hover:bg-[var(--bg-hover)] rounded-full transition-colors"
                 aria-label="Close"
               >
                 <X size={20} className="text-text-secondary" />

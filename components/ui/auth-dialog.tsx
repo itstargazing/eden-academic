@@ -31,7 +31,7 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  
+
   const login = useUserStore(state => state.login);
 
   // Wait for component to mount to avoid hydration errors with portals
@@ -97,15 +97,19 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
   const modalContent = (
     // Modal overlay - fixed position covering the full screen with a dark backdrop
     <div 
-      className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] backdrop-blur-sm"
+      className="fixed inset-0 bg-[rgba(176,176,176,0.45)] flex items-center justify-center z-[9999] backdrop-blur-sm"
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100vw',
-        height: '100vh'
+        position: 'fixed !important' as any,
+        top: '0 !important',
+        left: '0 !important',
+        right: '0 !important',
+        bottom: '0 !important',
+        width: '100vw !important',
+        height: '100vh !important',
+        display: 'flex !important',
+        alignItems: 'center !important',
+        justifyContent: 'center !important',
+        zIndex: 9999
       }}
       onClick={(e) => {
         // Close modal when clicking the backdrop
@@ -114,15 +118,15 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
     >
       {/* Modal dialog */}
       <div 
-        className="bg-primary rounded-lg w-full max-w-md p-4 sm:p-6 border border-white/20 shadow-xl m-4 max-h-[90vh] overflow-y-auto"
+        className="bg-[var(--bg-panel)] rounded-lg w-full max-w-md p-4 sm:p-6 border border-[var(--border)] shadow-xl m-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-2 rounded-full bg-white flex items-center justify-center">
-              {isLogin ? <Lock size={18} className="text-black" /> : <UserPlus size={18} className="text-black" />}
+            <div className="p-2 rounded-full bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center">
+              {isLogin ? <Lock size={18} className="text-[var(--text)]" /> : <UserPlus size={18} className="text-[var(--text)]" />}
             </div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white font-logo">
+            <h2 className="text-lg sm:text-xl font-semibold text-[var(--text)] font-logo">
               {isLogin ? 'LOGIN' : 'CREATE ACCOUNT'}
             </h2>
           </div>
@@ -151,7 +155,7 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
                 <input
                   id="username"
                   type="text"
-                  className="w-full pl-10 p-3 border border-white/10 rounded-md bg-background text-white focus:border-white/30"
+                  className="w-full pl-10 p-3 border border-[var(--border)] rounded-md bg-[var(--bg)] text-[var(--text)] focus:border-[var(--text-dim)]"
                   placeholder="Your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -172,7 +176,7 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
               <input
                 id="email"
                 type="email"
-                className="w-full pl-10 p-3 border border-white/10 rounded-md bg-background text-white focus:border-white/30"
+                className="w-full pl-10 p-3 border border-[var(--border)] rounded-md bg-[var(--bg)] text-[var(--text)] focus:border-[var(--text-dim)]"
                 placeholder="Your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -192,7 +196,7 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
               <input
                 id="password"
                 type="password"
-                className="w-full pl-10 p-3 border border-white/10 rounded-md bg-background text-white focus:border-white/30"
+                className="w-full pl-10 p-3 border border-[var(--border)] rounded-md bg-[var(--bg)] text-[var(--text)] focus:border-[var(--text-dim)]"
                 placeholder="Your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -206,10 +210,10 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
           <button 
             type="submit"
             disabled={isSubmitting}
-            className="w-full p-3 rounded-md bg-white hover:bg-white/90 transition-colors text-black font-medium flex items-center justify-center"
+            className="w-full p-3 rounded-md border border-[var(--border)] bg-[var(--bg-hover)] hover:bg-[var(--bg-panel)] transition-colors text-[var(--text)] font-medium flex items-center justify-center"
           >
             {isSubmitting ? (
-              <span className="animate-spin mr-2 h-4 w-4 border-2 border-black border-t-transparent rounded-full" />
+              <span className="animate-spin mr-2 h-4 w-4 border-2 border-[var(--border)] border-t-[var(--text)] rounded-full" />
             ) : null}
             {isLogin ? 'Login' : 'Create Account'}
           </button>
@@ -218,7 +222,7 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
             {isLogin ? "Don't have an account?" : "Already have an account?"} 
             <button 
               type="button"
-              className="ml-1 text-white hover:underline"
+              className="ml-1 text-[var(--text)] underline decoration-[var(--border)] underline-offset-2 hover:decoration-[var(--text)]"
               onClick={() => {
                 setIsLogin(!isLogin);
                 setErrors({});
@@ -233,5 +237,8 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
   );
 
   // Use createPortal to render the modal at the document body level
+  // Ensure we have a valid portal target
+  if (typeof window === 'undefined') return null;
+
   return createPortal(modalContent, document.body);
 } 

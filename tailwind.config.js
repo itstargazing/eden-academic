@@ -9,26 +9,23 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Main background color - solid black
-        background: '#000000',
-        'background-light': '#000000',
-        
-        // Primary UI colors for cards, containers, etc.
-        primary: '#000000',
-        'primary-light': '#000000',
-        'primary-dark': '#000000',
-        
-        // Accent color - white
-        accent: '#ffffff',
-        'accent-light': '#f0f0f0',
-        
-        // Text colors
-        'text-primary': '#ffffff',
-        'text-secondary': '#aaaaaa',
+        // Aligned with app/globals.css :root (utilities must match — they override @layer components)
+        background: '#d9d9d9',
+        'background-light': '#cfcfcf',
+
+        primary: '#ebebeb',
+        'primary-light': '#cfcfcf',
+        'primary-dark': '#b0b0b0',
+
+        accent: '#444444',
+        'accent-light': '#888888',
+
+        'text-primary': '#0a0a0a',
+        'text-secondary': '#444444',
       },
       fontFamily: {
-        sans: ['Jost', 'sans-serif'],
-        logo: ['Unbounded', 'sans-serif'],
+        sans: ['var(--font-jost)', 'Jost', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        logo: ['var(--font-unbounded)', 'Unbounded', 'sans-serif'],
       },
     },
   },

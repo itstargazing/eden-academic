@@ -1,20 +1,31 @@
-"use client";
+'use client';
 
-import { useState, useEffect, createContext, useContext } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { 
-  BrainCircuit, Pencil, Network, Clock, Search, 
-  BookOpen, Brain, Menu, X, PanelLeft, PanelRight, LogIn, Volume2, Compass 
-} from 'lucide-react';
-import ProfileMenu from '@/components/layout/profile-menu';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { useAuthStore } from '@/store/auth-store';
-import { AuthModal } from '@/components/auth/auth-modal';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  BookOpen,
+  Brain,
+  BrainCircuit,
+  Briefcase,
+  Clock,
+  Compass,
+  LayoutDashboard,
+  LogIn,
+  LogOut,
+  Menu,
+  Network,
+  PanelLeft,
+  PanelRight,
+  Pencil,
+  Search,
+  Volume2,
+  X,
+} from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { useSupabaseUser } from '@/hooks/use-supabase-user';
 
-// Create context for sidebar state
 const SidebarContext = createContext<{
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
@@ -23,54 +34,62 @@ const SidebarContext = createContext<{
   setIsCollapsed: () => {},
 });
 
-export const useSidebar = () => useContext(SidebarContext);
-
 const navItems = [
   {
-    name: "BrainMerge",
-    href: "/brain-merge",
-    icon: BrainCircuit
+    name: 'Dashboard',
+    href: '/dashboard',
+    icon: LayoutDashboard,
   },
   {
-    name: "ThesisSculptor",
-    href: "/thesis-sculptor",
-    icon: Pencil
+    name: 'Career Studio',
+    href: '/career-studio',
+    icon: Briefcase,
   },
   {
-    name: "MindMap Translator",
-    href: "/mindmap-translator",
-    icon: Network
+    name: 'BrainMerge',
+    href: '/brain-merge',
+    icon: BrainCircuit,
   },
   {
-    name: "StudyTime Synch",
-    href: "/studytime-synch",
-    icon: Clock
+    name: 'ThesisSculptor',
+    href: '/thesis-sculptor',
+    icon: Pencil,
   },
   {
-    name: "GhostCitations",
-    href: "/ghost-citations",
-    icon: Search
+    name: 'MindMap Translator',
+    href: '/mindmap-translator',
+    icon: Network,
   },
   {
-    name: "Syllabus Whisperer",
-    href: "/syllabus-whisperer",
-    icon: BookOpen
+    name: 'StudyTime Synch',
+    href: '/studytime-synch',
+    icon: Clock,
   },
   {
-    name: "Cognitive Compass",
-    href: "/cognitive-compass",
-    icon: Compass
+    name: 'GhostCitations',
+    href: '/ghost-citations',
+    icon: Search,
   },
   {
-    name: "Stress Alchemist",
-    href: "/stress-alchemist",
-    icon: Brain
+    name: 'Syllabus Whisperer',
+    href: '/syllabus-whisperer',
+    icon: BookOpen,
   },
   {
-    name: "Focus Soundscapes",
-    href: "/focus-soundscapes",
-    icon: Volume2
-  }
+    name: 'Cognitive Compass',
+    href: '/cognitive-compass',
+    icon: Compass,
+  },
+  {
+    name: 'Stress Alchemist',
+    href: '/stress-alchemist',
+    icon: Brain,
+  },
+  {
+    name: 'Focus Soundscapes',
+    href: '/focus-soundscapes',
+    icon: Volume2,
+  },
 ];
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
@@ -83,80 +102,73 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+export const useSidebar = () => useContext(SidebarContext);
+
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
+  const { user } = useSupabaseUser();
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const { user } = useAuthStore();
-  const { data: session } = useSession();
-  const router = useRouter();
-  
-  // Close mobile sidebar when route changes
+  const [signingOut, setSigningOut] = useState(false);
+
   useEffect(() => {
     setIsMobileOpen(false);
   }, [pathname]);
-  
-  // Close mobile sidebar when escape key is pressed
+
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
         setIsMobileOpen(false);
       }
     };
-    
+
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
 
-  // Add CSS custom property for sidebar width
   useEffect(() => {
-    document.documentElement.style.setProperty(
-      '--sidebar-width', 
-      isCollapsed ? '70px' : '250px'
-    );
+    document.documentElement.style.setProperty('--sidebar-width', isCollapsed ? '70px' : '250px');
   }, [isCollapsed]);
-  
+
+  const handleSignOut = async () => {
+    if (!supabase) {
+      router.push('/sign-in');
+      return;
+    }
+
+    setSigningOut(true);
+    await supabase.auth.signOut();
+    router.push('/sign-in');
+    router.refresh();
+    setSigningOut(false);
+  };
+
   return (
     <>
-      {/* Mobile sidebar toggle */}
-      <button 
-        className="fixed top-3 left-3 p-2 rounded-md bg-black border border-white/20 z-40 lg:hidden shadow-lg"
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
+      <button
+        className="fixed left-3 top-3 z-40 rounded-sm border border-[var(--border)] bg-[var(--bg)] p-2 shadow-lg lg:hidden"
+        onClick={() => setIsMobileOpen((previous) => !previous)}
       >
-        {isMobileOpen ? (
-          <X size={18} className="text-white" />
-        ) : (
-          <Menu size={18} className="text-white" />
-        )}
+        {isMobileOpen ? <X size={18} className="text-[var(--text)]" /> : <Menu size={18} className="text-[var(--text)]" />}
       </button>
-      
-      {/* Mobile overlay */}
-      {isMobileOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+
+      {isMobileOpen ? (
+        <div
+          className="fixed inset-0 z-20 bg-[rgba(176,176,176,0.35)] backdrop-blur-[1px] lg:hidden"
           onClick={() => setIsMobileOpen(false)}
         />
-      )}
-      
-      {/* Sidebar */}
-      <aside 
-        className={`fixed top-0 bottom-0 left-0 z-30 flex flex-col bg-primary border-r border-primary-light transition-all ${
-          isMobileOpen 
-            ? "translate-x-0" 
-            : "translate-x-[-100%] lg:translate-x-0"
-        } ${
-          isCollapsed 
-            ? "w-[70px]" 
-            : "w-[250px]"
-        }`}
+      ) : null}
+
+      <aside
+        className={`fixed bottom-0 left-0 top-0 z-30 flex flex-col border-r border-[var(--border)] bg-[var(--bg)] transition-all ${
+          isMobileOpen ? 'translate-x-0' : 'translate-x-[-100%] lg:translate-x-0'
+        } ${isCollapsed ? 'w-[70px]' : 'w-[250px]'}`}
       >
-        <div className="flex items-center h-16 px-4 border-b border-primary-light">
-          <Link 
-            href="/" 
-            className="flex items-center gap-2 text-white hover:text-white/90 transition-colors"
-          >
-            <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
+        <div className="flex h-16 items-center border-b border-[var(--border)] px-4">
+          <Link href="/" className="flex items-center gap-2 text-[var(--text)] transition-colors">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center">
               <Image
                 src="/images/logo.png"
                 alt="EDEN Logo"
@@ -166,74 +178,79 @@ export default function Sidebar() {
                 priority
               />
             </div>
-            {!isCollapsed && (
-              <span className="font-bold text-lg font-logo">EDEN</span>
-            )}
+            {!isCollapsed ? <span className="font-logo text-lg font-bold">EDEN</span> : null}
           </Link>
-          
-          <button 
-            className="ml-auto p-1.5 rounded-md text-text-secondary hover:bg-primary-light hover:text-white hidden lg:block"
+
+          <button
+            className="ml-auto hidden rounded-sm p-1.5 text-[var(--text-dim)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)] lg:block"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
-            {isCollapsed ? (
-              <PanelRight size={18} />
-            ) : (
-              <PanelLeft size={18} />
-            )}
+            {isCollapsed ? <PanelRight size={18} /> : <PanelLeft size={18} />}
           </button>
         </div>
-        
+
         <nav className="flex-1 overflow-y-auto py-4">
           <div className="space-y-1 px-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
-              
+
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive 
-                      ? "bg-primary-light text-white" 
-                      : "text-text-secondary hover:bg-primary-light hover:text-white"
+                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-transparent font-bold underline text-[var(--text)]'
+                      : 'text-[var(--text)] hover:bg-transparent hover:underline'
                   }`}
                   title={isCollapsed ? item.name : undefined}
                 >
                   <Icon size={20} className="flex-shrink-0" />
-                  {!isCollapsed && (
-                    <span className="truncate">{item.name}</span>
-                  )}
+                  {!isCollapsed ? <span className="truncate">{item.name}</span> : null}
                 </Link>
               );
             })}
           </div>
         </nav>
-        
-        {/* Auth section */}
-        <div className="border-t border-primary-light p-4">
-          {session ? (
-            <ProfileMenu />
+
+        <div className="border-t border-[var(--border)] p-4">
+          {user ? (
+            <div className="space-y-3">
+              {!isCollapsed ? (
+                <div>
+                  <p className="truncate text-sm font-medium text-[var(--text)]">
+                    {user.user_metadata?.full_name || user.email}
+                  </p>
+                  <p className="truncate text-xs text-[var(--text-dim)]">{user.email}</p>
+                </div>
+              ) : null}
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className={`flex w-full items-center gap-3 rounded-sm border border-[var(--border)] bg-[var(--bg-panel)] px-3 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:bg-[var(--bg-hover)] ${
+                  isCollapsed ? 'justify-center' : ''
+                }`}
+                title={isCollapsed ? 'Sign Out' : undefined}
+              >
+                <LogOut size={20} className="flex-shrink-0" />
+                {!isCollapsed ? <span>{signingOut ? 'Signing out...' : 'Sign Out'}</span> : null}
+              </button>
+            </div>
           ) : (
-            <button 
-              onClick={() => setShowAuthModal(true)}
-              className={`flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm font-medium text-text-secondary hover:bg-primary-light hover:text-white transition-colors ${
-                isCollapsed ? "justify-center" : ""
+            <Link
+              href="/sign-in"
+              className={`flex w-full items-center gap-3 rounded-sm border border-[var(--border)] bg-[var(--bg-panel)] px-5 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:bg-[var(--bg-hover)] ${
+                isCollapsed ? 'justify-center' : ''
               }`}
-              title={isCollapsed ? "Sign In" : undefined}
+              title={isCollapsed ? 'Sign In' : undefined}
             >
               <LogIn size={20} className="flex-shrink-0" />
-              {!isCollapsed && <span>Sign In</span>}
-            </button>
+              {!isCollapsed ? <span>Sign In</span> : null}
+            </Link>
           )}
         </div>
       </aside>
-      
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
-      />
     </>
   );
-} 
+}

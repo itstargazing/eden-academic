@@ -69,14 +69,14 @@ export default function ProfileMenu() {
   return (
     <div className="relative" ref={menuRef}>
       <button 
-        className="flex items-center gap-2 p-2 rounded-md hover:bg-primary-light text-white"
+        className="flex items-center gap-2 p-2 rounded-md hover:bg-primary-light text-[var(--text)]"
         onClick={toggleMenu}
       >
-        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-[var(--bg-panel)] border border-[var(--border)] flex items-center justify-center">
           {isLoggedIn ? (
-            <span className="text-black font-medium">{username ? username[0].toUpperCase() : 'U'}</span>
+            <span className="text-[var(--text)] font-medium">{username ? username[0].toUpperCase() : 'U'}</span>
           ) : (
-            <UserPlus size={16} className="text-black" />
+            <UserPlus size={16} className="text-[var(--text)]" />
           )}
         </div>
         <span className="text-sm">{isLoggedIn ? `${username} (Click for Account)` : 'Login / Sign Up'}</span>
@@ -84,7 +84,7 @@ export default function ProfileMenu() {
       
       {/* Temporarily disabled dropdown - direct navigation instead */}
       {false && isMenuOpen && isLoggedIn && (
-        <div className="absolute top-full right-0 mt-2 w-48 bg-black rounded-md shadow-xl overflow-hidden z-[100] border border-white/20" style={{ boxShadow: '0 20px 25px -5px rgba(255, 255, 255, 0.1)' }}>
+        <div className="absolute top-full right-0 mt-2 w-48 bg-[var(--bg-panel)] rounded-md shadow-xl overflow-hidden z-[100] border border-[var(--border)]" style={{ boxShadow: '0 20px 25px -5px rgba(68, 68, 68, 0.15)' }}>
           <div className="p-2">
             <Link 
               href="/account"

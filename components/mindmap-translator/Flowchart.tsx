@@ -18,10 +18,10 @@ interface FlowchartProps {
 }
 
 const nodeTypes = {
-  start: { background: '#10b981', color: 'white' }, // green
-  process: { background: '#3b82f6', color: 'white' }, // blue
-  decision: { background: '#f59e0b', color: 'white' }, // amber
-  end: { background: '#ef4444', color: 'white' }, // red
+  start: { background: '#d9d9d9', color: '#0a0a0a' },
+  process: { background: '#ebebeb', color: '#0a0a0a' },
+  decision: { background: '#d9d9d9', color: '#0a0a0a' },
+  end: { background: '#ebebeb', color: '#0a0a0a' },
 };
 
 const convertToReactFlowNodes = (processedNodes: ProcessedNode[]): Node[] => {
@@ -33,7 +33,7 @@ const convertToReactFlowNodes = (processedNodes: ProcessedNode[]): Node[] => {
     style: {
       background: nodeTypes[node.type].background,
       color: nodeTypes[node.type].color,
-      border: '2px solid rgba(255, 255, 255, 0.2)',
+      border: '1px solid #b0b0b0',
       borderRadius: '8px',
       padding: '10px 15px',
       fontSize: '12px',
@@ -53,15 +53,15 @@ const convertToReactFlowEdges = (processedEdges: ProcessedEdge[]): Edge[] => {
     type: 'smoothstep',
     animated: true,
     style: { 
-      stroke: 'rgba(255, 255, 255, 0.4)', 
+      stroke: 'rgba(176, 176, 176, 0.95)',
       strokeWidth: 2 
     },
     label: edge.label,
     labelStyle: {
       fontSize: '10px',
       fontWeight: '500',
-      fill: 'white',
-      background: 'rgba(0, 0, 0, 0.7)',
+      fill: '#0a0a0a',
+      background: '#ebebeb',
       padding: '2px 6px',
       borderRadius: '4px',
     },
@@ -140,7 +140,7 @@ export default function Flowchart({ text }: FlowchartProps) {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-2 border-white border-t-transparent rounded-full mb-4"></div>
+        <div className="animate-spin h-8 w-8 border-2 border-[var(--text)] border-t-transparent rounded-full mb-4"></div>
         <p className="text-text-secondary">Generating flowchart from your notes...</p>
         <p className="text-xs text-text-secondary mt-2">Analyzing process steps and decision points</p>
       </div>
@@ -151,7 +151,7 @@ export default function Flowchart({ text }: FlowchartProps) {
     return (
       <div className="text-center text-text-secondary p-8">
         <RotateCcw size={48} className="mx-auto mb-4 opacity-40" />
-        <h3 className="text-lg font-medium text-white mb-2">No flowchart generated</h3>
+        <h3 className="text-lg font-medium text-[var(--text)] mb-2">No flowchart generated</h3>
         <p>The text doesn't contain enough process steps to create a flowchart.</p>
         <p className="text-sm mt-2">Try adding:</p>
         <ul className="text-sm mt-2 list-disc list-inside space-y-1">
@@ -169,8 +169,8 @@ export default function Flowchart({ text }: FlowchartProps) {
       {/* Header with controls */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-            <Zap size={20} className="text-blue-400" />
+          <h3 className="text-xl font-semibold text-[var(--text)] flex items-center gap-2">
+            <Zap size={20} className="text-[var(--text)]" />
             Process Flowchart
           </h3>
           <div className="flex items-center gap-4 text-sm text-text-secondary">
@@ -189,26 +189,26 @@ export default function Flowchart({ text }: FlowchartProps) {
       
       {/* Node type statistics */}
       <div className="grid grid-cols-4 gap-2 text-xs">
-        <div className="flex items-center gap-2 p-2 bg-green-500/10 border border-green-500/20 rounded">
-          <div className="w-3 h-3 bg-green-500 rounded"></div>
-          <span className="text-green-400">Start: {getNodeTypeCount('start')}</span>
+        <div className="flex items-center gap-2 p-2 bg-[var(--bg-panel)] border border-[var(--border)] rounded">
+          <div className="w-3 h-3 bg-[var(--text-dim)] rounded"></div>
+          <span className="text-[var(--text)]">Start: {getNodeTypeCount('start')}</span>
         </div>
-        <div className="flex items-center gap-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded">
-          <div className="w-3 h-3 bg-blue-500 rounded"></div>
-          <span className="text-blue-400">Process: {getNodeTypeCount('process')}</span>
+        <div className="flex items-center gap-2 p-2 bg-[var(--bg-panel)] border border-[var(--border)] rounded">
+          <div className="w-3 h-3 bg-[var(--text-dim)] rounded"></div>
+          <span className="text-[var(--text)]">Process: {getNodeTypeCount('process')}</span>
         </div>
-        <div className="flex items-center gap-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded">
-          <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-          <span className="text-yellow-400">Decision: {getNodeTypeCount('decision')}</span>
+        <div className="flex items-center gap-2 p-2 bg-[var(--bg-panel)] border border-[var(--border)] rounded">
+          <div className="w-3 h-3 bg-[var(--text-dim)] rounded"></div>
+          <span className="text-[var(--text)]">Decision: {getNodeTypeCount('decision')}</span>
         </div>
-        <div className="flex items-center gap-2 p-2 bg-red-500/10 border border-red-500/20 rounded">
-          <div className="w-3 h-3 bg-red-500 rounded"></div>
-          <span className="text-red-400">End: {getNodeTypeCount('end')}</span>
+        <div className="flex items-center gap-2 p-2 bg-[var(--bg-panel)] border border-[var(--border)] rounded">
+          <div className="w-3 h-3 bg-[var(--text-dim)] rounded"></div>
+          <span className="text-[var(--text)]">End: {getNodeTypeCount('end')}</span>
         </div>
       </div>
       
       {/* Flowchart */}
-      <div style={{ width: '100%', height: '600px' }} className="bg-background rounded-lg border border-white/10">
+      <div style={{ width: '100%', height: '600px' }} className="bg-background rounded-lg border border-[var(--border)]">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -221,35 +221,32 @@ export default function Flowchart({ text }: FlowchartProps) {
           elementsSelectable={true}
         >
           <Background 
-            color="#374151" 
+            color="#b0b0b0"
             gap={20} 
             size={1}
           />
           <Controls 
             style={{
-              background: 'rgba(0, 0, 0, 0.8)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#ebebeb',
+              border: '1px solid #b0b0b0',
             }}
           />
           <MiniMap
             style={{
-              background: 'rgba(0, 0, 0, 0.8)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#ebebeb',
+              border: '1px solid #b0b0b0',
             }}
             nodeColor={(node) => {
               // Determine node type by background color
-              if (node.style?.background === '#10b981') return '#10b981';
-              if (node.style?.background === '#f59e0b') return '#f59e0b';
-              if (node.style?.background === '#ef4444') return '#ef4444';
-              return '#3b82f6';
+              return '#0a0a0a';
             }}
           />
         </ReactFlow>
       </div>
       
       {/* Instructions */}
-      <div className="p-4 bg-primary rounded-lg border border-white/10">
-        <h4 className="text-sm font-medium text-white mb-2">Interactive Features:</h4>
+      <div className="p-4 bg-primary rounded-lg border border-[var(--border)]">
+        <h4 className="text-sm font-medium text-[var(--text)] mb-2">Interactive Features:</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-text-secondary">
           <div>
             <strong>Navigation:</strong>

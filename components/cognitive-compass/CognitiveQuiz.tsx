@@ -45,7 +45,6 @@ export default function CognitiveQuiz({ onComplete }: { onComplete: (profile: Co
   };
 
   const determineProfile = () => {
-    // Simple profile determination logic
     const timePreference = answers.time?.includes('Morning') ? 'Early Bird' : 'Night Owl';
     const style = answers.style?.includes('Visual') ? 'Visual' : 
                  answers.style?.includes('Verbal') ? 'Verbal' : 'Kinesthetic';
@@ -62,28 +61,29 @@ export default function CognitiveQuiz({ onComplete }: { onComplete: (profile: Co
   const isComplete = Object.keys(answers).length === questions.length;
 
   return (
-    <div className="space-y-8 p-6 bg-background rounded-lg border border-white/10">
-      <h3 className="text-xl font-semibold text-white">Cognitive Style Quiz</h3>
+    <div className="space-y-8 rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-6">
+      <h3 className="text-xl font-semibold text-[var(--text)]">Cognitive Style Quiz</h3>
       
       <div className="space-y-6">
         {questions.map((q) => {
           const Icon = q.icon;
           return (
             <div key={q.id} className="space-y-4">
-              <div className="flex items-center gap-3 text-white">
-                <Icon size={18} className="text-blue-500" />
+              <div className="flex items-center gap-3 text-[var(--text)]">
+                <Icon size={18} className="text-[var(--text-dim)]" />
                 <span className="text-sm">{q.question}</span>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid min-w-0 grid-cols-2 gap-2 md:grid-cols-3">
                 {q.options.map((option) => (
                   <button
                     key={option}
+                    type="button"
                     onClick={() => handleAnswer(q.id, option)}
-                    className={`p-2 rounded-md text-xs transition-colors ${
+                    className={`min-w-0 rounded-md p-2 text-left text-xs transition-colors ${
                       answers[q.id] === option
-                        ? 'bg-white/20 text-white'
-                        : 'bg-background hover:bg-white/10 text-white/70'
+                        ? 'border border-[var(--text)] bg-[var(--bg-hover)] text-[var(--text)]'
+                        : 'border border-[var(--border)] bg-[var(--bg)] text-[var(--text-dim)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]'
                     }`}
                   >
                     {option}
@@ -97,12 +97,13 @@ export default function CognitiveQuiz({ onComplete }: { onComplete: (profile: Co
 
       {isComplete && (
         <button
+          type="button"
           onClick={() => onComplete(determineProfile())}
-          className="w-full py-2 px-4 bg-white/10 hover:bg-white/20 text-white rounded-md transition-colors"
+          className="btn btn-primary w-full py-2 px-4"
         >
           Complete Profile
         </button>
       )}
     </div>
   );
-} 
+}

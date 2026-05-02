@@ -1,615 +1,326 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { Brain, Users, Search, Share, Mail, Github, Linkedin, Star, Upload, FileText, X, Check, Send, AlertCircle, UserPlus, MessageSquare } from "lucide-react";
-import { useUserStore, ResearcherMatch, UserResearchProfile } from "@/store/user-store";
-import { initialResearchers } from "@/lib/researchers-db";
-import { ConnectionService } from "@/lib/connection-service";
+import { useMemo, useState } from 'react';
+import { AlertCircle, BrainCircuit, Loader2, Send } from 'lucide-react';
+import SaveResultsBanner from '@/components/auth/save-results-banner';
+import GalaxyAnimation from '@/components/GalaxyAnimation';
+import { useSupabaseUser } from '@/hooks/use-supabase-user';
+import type { BrainMergeResearcher } from '@/lib/eden-types';
+import { createClient } from '@/lib/supabase/client';
 
-interface ConnectionModalData {
-  researcher: ResearcherMatch['researcher'];
-  isOpen: boolean;
+const COUNTRY_FLAGS: Record<string, string> = {
+  Australia: '\uD83C\uDDE6\uD83C\uDDFA',
+  Canada: '\uD83C\uDDE8\uD83C\uDDE6',
+  China: '\uD83C\uDDE8\uD83C\uDDF3',
+  France: '\uD83C\uDDEB\uD83C\uDDF7',
+  Germany: '\uD83C\uDDE9\uD83C\uDDEA',
+  India: '\uD83C\uDDEE\uD83C\uDDF3',
+  Japan: '\uD83C\uDDEF\uD83C\uDDF5',
+  Netherlands: '\uD83C\uDDF3\uD83C\uDDF1',
+  Singapore: '\uD83C\uDDF8\uD83C\uDDEC',
+  'South Korea': '\uD83C\uDDF0\uD83C\uDDF7',
+  Switzerland: '\uD83C\uDDE8\uD83C\uDDED',
+  'United Kingdom': '\uD83C\uDDEC\uD83C\uDDE7',
+  'United States': '\uD83C\uDDFA\uD83C\uDDF8',
+};
+
+function getFlag(country: string) {
+  return COUNTRY_FLAGS[country] || '\uD83C\uDF0D';
+}
+
+function getScoreTone(score: number) {
+  if (score >= 90) {
+    return 'bg-[var(--bg-hover)] text-[var(--text)]';
+  }
+
+  if (score >= 80) {
+    return 'bg-[var(--bg-panel)] text-[var(--text)]';
+  }
+
+    return 'bg-[var(--bg-panel)] text-[var(--text-dim)]';
 }
 
 export default function BrainMergePage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<ResearcherMatch[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [connectionModal, setConnectionModal] = useState<ConnectionModalData>({ researcher: null as any, isOpen: false });
-  const [connectionMessage, setConnectionMessage] = useState("");
-  const [isSendingConnection, setIsSendingConnection] = useState(false);
-  const [connectionSuccess, setConnectionSuccess] = useState(false);
-  
-  // Share research form state
-  const [shareForm, setShareForm] = useState({
-    name: "",
-    email: "",
-    university: "",
-    field: "",
-    keywords: "",
-    bio: "",
-    isPublic: true
-  });
-  
-  // Store functions
-  const { 
-    researchers, 
-    userResearchProfile, 
-    searchResearchers, 
-    addResearcher, 
-    updateUserResearchProfile,
-    sendConnectionRequest,
-    isLoggedIn,
-    username,
-    email
-  } = useUserStore();
+  const supabase = useMemo(() => createClient(), []);
+  const { user } = useSupabaseUser();
 
-  // Initialize database on first load
-  useEffect(() => {
-    if (researchers.length === 0) {
-      // Seed the database with initial researchers
-      initialResearchers.forEach(researcher => {
-        addResearcher(researcher);
-      });
-    }
-  }, []);
+  const [activeTab, setActiveTab] = useState<'matches' | 'share'>('matches');
+  const [topic, setTopic] = useState('');
+  const [field, setField] = useState('');
+  const [matches, setMatches] = useState<BrainMergeResearcher[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
+  const [success, setSuccess] = useState('');
+  const [researchTitle, setResearchTitle] = useState('');
+  const [researchAbstract, setResearchAbstract] = useState('');
+  const [researchTags, setResearchTags] = useState('');
+  const [university, setUniversity] = useState('');
 
-  // Populate form with user data if logged in
-  useEffect(() => {
-    if (isLoggedIn && username && email) {
-      setShareForm(prev => ({
-        ...prev,
-        name: userResearchProfile?.name || username,
-        email: userResearchProfile?.email || email
-      }));
-    }
-  }, [isLoggedIn, username, email, userResearchProfile]);
+  const handleFindMatches = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setHasSearched(false);
-      return;
-    }
-    
-    setIsSearching(true);
-    setHasSearched(false);
-    
-    // Simulate API delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const results = searchResearchers(searchQuery);
-    setSearchResults(results);
-    setHasSearched(true);
-    setIsSearching(false);
-  };
-
-  const handleConnect = (researcher: ResearcherMatch['researcher']) => {
-    setConnectionModal({ researcher, isOpen: true });
-    setConnectionMessage(`Hi ${researcher.name.split(' ')[1]},\n\nI found your research on ${researcher.field} very interesting, particularly your work on ${researcher.keywords.slice(0, 2).join(' and ')}. I'd love to discuss potential collaboration opportunities.\n\nBest regards,\n${username || 'Anonymous'}`);
-  };
-
-  const sendConnection = async () => {
-    if (!connectionMessage.trim() || !connectionModal.researcher) return;
-    
-    setIsSendingConnection(true);
-    
     try {
-      const result = await ConnectionService.sendConnectionRequest(
-        'current-user', // In production, this would be the actual user ID
-        connectionModal.researcher.id,
-        connectionMessage
-      );
-      
-      if (result.success) {
-        setConnectionSuccess(true);
-        
-        // Update local store
-        sendConnectionRequest(connectionModal.researcher.id, connectionMessage);
-        
-        // Close modal after success message
-        setTimeout(() => {
-          setConnectionModal({ researcher: null as any, isOpen: false });
-          setConnectionSuccess(false);
-          setConnectionMessage("");
-        }, 2000);
-      } else {
-        // Show error message
-        alert(result.error || 'Failed to send connection request');
+      const response = await fetch('/api/brain-merge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ topic, field }),
+      });
+
+      const data = (await response.json()) as { researchers?: BrainMergeResearcher[]; error?: string };
+
+      if (!response.ok || !data.researchers) {
+        throw new Error(data.error || 'matches failed');
       }
-    } catch (error) {
-      alert('Network error. Please try again.');
+
+      setMatches(data.researchers);
+    } catch {
+      setError('Search failed. Try again.');
+      setMatches([]);
     } finally {
-      setIsSendingConnection(false);
+      setLoading(false);
     }
   };
 
-  const handleShareResearch = async () => {
-    const { name, email, university, field, keywords, bio, isPublic } = shareForm;
-    
-    if (!name || !email || !university || !field || !bio) {
-      alert('Please fill in all required fields');
+  const handlePublish = async () => {
+    if (!user || !supabase) {
       return;
     }
 
-    const keywordArray = keywords.split(',').map(k => k.trim()).filter(k => k);
-    const matchableText = `${field} ${bio} ${keywordArray.join(' ')} ${university}`.toLowerCase();
+    setPublishing(true);
+    setError('');
+    setSuccess('');
 
-    // Create user research profile
-    const profile: UserResearchProfile = {
-      name,
-      email,
+    const { error: saveError } = await supabase.from('research_profiles').insert({
+      user_id: user.id,
+      title: researchTitle,
+      abstract: researchAbstract,
+      tags: researchTags.split(',').map((tag) => tag.trim()).filter(Boolean),
       university,
-      field,
-      keywords: keywordArray,
-      bio,
-      isPublic
-    };
+      created_at: new Date().toISOString(),
+    });
 
-    // Add user as a researcher if public
-    if (isPublic) {
-      addResearcher({
-        name,
-        university,
-        field,
-        keywords: keywordArray,
-        bio,
-        matchableText,
-        publications: 0, // New user starts with 0
-        profileURL: `/profile/${name.toLowerCase().replace(/\s+/g, '-')}`,
-        email,
-        verified: false,
-        department: field
-      });
+    if (saveError) {
+      setError('Search failed. Try again.');
+    } else {
+      setSuccess('Your research is now visible to other researchers on EDEN');
     }
 
-    updateUserResearchProfile(profile);
-    setShowShareModal(false);
-    
-    // Reset form
-    setShareForm({
-      name: "",
-      email: "",
-      university: "",
-      field: "",
-      keywords: "",
-      bio: "",
-      isPublic: true
-    });
-  };
-
-  const getFeaturedResearchers = () => {
-    return researchers.slice(0, 3).map(researcher => ({
-      researcher,
-      matchScore: 85, // Default high score for featured
-      matchingKeywords: researcher.keywords.slice(0, 2)
-    }));
+    setPublishing(false);
   };
 
   return (
-    <div className="space-y-8 feature-page">
+    <div className="split-layout min-h-screen w-full max-w-full">
+      <div className="split-left flex flex-col items-center justify-center overflow-hidden bg-[var(--bg-panel)] p-6 sm:p-10">
+        <GalaxyAnimation label="BrainMerge" />
+      </div>
+      <div className="split-right flex min-h-0 w-full max-w-full min-w-0 flex-col gap-6 bg-[var(--bg)] p-6 sm:p-8 xl:overflow-y-auto">
+    <div className="feature-page min-w-0 max-w-full space-y-8">
       <section className="py-6">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 bg-background border border-white/20 rounded-lg">
-            <Brain size={32} className="text-blue-500" />
+        <div className="flex items-center gap-4">
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-3">
+            <BrainCircuit size={32} className="text-[var(--text)]" />
           </div>
           <div>
             <h1 className="page-header">BrainMerge</h1>
-            <p className="text-text-secondary">Find research collaborators with similar interests</p>
+            <p className="text-text-secondary">Find collaborators and share your own research with the EDEN network</p>
           </div>
         </div>
       </section>
 
-      {/* Research Interest Matching */}
-      <section className="card">
-        <h2 className="section-title">Research Interest Matching</h2>
-        <div className="space-y-4">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-text-secondary" />
-            </div>
-            <input
-              type="text"
-              className="input w-full pl-10"
-              placeholder="Enter your research topic or keywords (e.g., machine learning, biology, quantum physics)..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button 
-              onClick={handleSearch}
-              disabled={isSearching}
-              className="btn btn-primary flex items-center justify-center gap-2"
-            >
-              {isSearching ? (
-                <>
-                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                  Searching...
-                </>
-              ) : (
-                <>
-                  <Search size={20} />
-                  Find Similar Research
-                </>
-              )}
-            </button>
-            <button 
-              onClick={() => setShowShareModal(true)}
-              className="btn btn-secondary flex items-center justify-center gap-2"
-            >
-              <Share size={20} />
-              Share My Research
-            </button>
-          </div>
+      <section className="card space-y-6">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveTab('matches')}
+            className={`rounded-full border px-4 py-2 text-sm transition ${
+              activeTab === 'matches'
+                ? 'border-[var(--text)] bg-[var(--bg-hover)] text-[var(--text)]'
+                : 'border-[var(--border)] text-[var(--text-dim)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]'
+            }`}
+          >
+            Find Similar Research
+          </button>
+          <button
+            onClick={() => setActiveTab('share')}
+            className={`rounded-full border px-4 py-2 text-sm transition ${
+              activeTab === 'share'
+                ? 'border-[var(--text)] bg-[var(--bg-hover)] text-[var(--text)]'
+                : 'border-[var(--border)] text-[var(--text-dim)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]'
+            }`}
+          >
+            Share My Research
+          </button>
         </div>
-      </section>
 
-      {/* User Research Profile Display */}
-      {userResearchProfile && (
-        <section className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="section-title mb-0">Your Research Profile</h2>
-            <button 
-              onClick={() => setShowShareModal(true)}
-              className="btn btn-secondary text-sm"
+        {error ? (
+          <div className="flex flex-col gap-3 rounded-xl border border-[var(--error)] bg-[#ffeded] px-4 py-3 text-[var(--error)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={18} />
+              <span>{error}</span>
+            </div>
+            <button
+              onClick={activeTab === 'matches' ? handleFindMatches : handlePublish}
+              className="btn btn-secondary"
             >
-              Edit Profile
+              Retry
             </button>
           </div>
-          <div className="p-4 bg-background border border-white/10 rounded-lg">
-            <h3 className="text-white font-medium">{userResearchProfile.name}</h3>
-            <p className="text-text-secondary text-sm">{userResearchProfile.university} • {userResearchProfile.field}</p>
-            <p className="text-white text-sm mt-2">{userResearchProfile.bio}</p>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {userResearchProfile.keywords.map((keyword, idx) => (
-                <span key={idx} className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full">
-                  {keyword}
-                </span>
-              ))}
-            </div>
-            <div className="flex items-center gap-4 mt-3">
-              <span className={`text-xs px-2 py-1 rounded-full ${
-                userResearchProfile.isPublic 
-                  ? 'bg-green-500/20 text-green-400' 
-                  : 'bg-gray-500/20 text-gray-400'
-              }`}>
-                {userResearchProfile.isPublic ? 'Public Profile' : 'Private Profile'}
-              </span>
-            </div>
-          </div>
-        </section>
-      )}
+        ) : null}
 
-      {/* Search Results / Featured Researchers */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="section-title mb-0">
-            {hasSearched ? `Search Results (${searchResults.length} found)` : 'Featured Researchers'}
-          </h2>
-          {hasSearched && (
-            <button 
-              onClick={() => {
-                setHasSearched(false);
-                setSearchResults([]);
-                setSearchQuery("");
-              }}
-              className="text-sm text-text-secondary hover:text-white"
-            >
-              Show Featured
-            </button>
-          )}
-        </div>
-        
-        {hasSearched && searchResults.length === 0 ? (
-          <div className="card text-center py-12">
-            <AlertCircle size={48} className="mx-auto mb-4 text-text-secondary opacity-50" />
-            <h3 className="text-white font-medium mb-2">No researchers found</h3>
-            <p className="text-text-secondary mb-4">No strong matches found for "{searchQuery}"</p>
-            <p className="text-text-secondary text-sm mb-6">Try different keywords or submit your own research profile to be discovered by others!</p>
-            <button 
-              onClick={() => setShowShareModal(true)}
+        {activeTab === 'matches' ? (
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <label htmlFor="topic" className="block text-sm font-medium text-[var(--text)]">
+                What is your research about?
+              </label>
+              <input
+                id="topic"
+                value={topic}
+                onChange={(event) => setTopic(event.target.value)}
+                placeholder="e.g. Machine learning for early Alzheimer's detection"
+                className="input"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="field" className="block text-sm font-medium text-[var(--text)]">
+                Your field of study
+              </label>
+              <input
+                id="field"
+                value={field}
+                onChange={(event) => setField(event.target.value)}
+                placeholder="e.g. Computer Science"
+                className="input"
+              />
+            </div>
+
+            <button
+              onClick={handleFindMatches}
+              disabled={!topic.trim() || !field.trim() || loading}
               className="btn btn-primary inline-flex items-center gap-2"
             >
-              <UserPlus size={18} />
-              Share Your Research
+              {loading ? <Loader2 size={18} className="animate-spin" /> : null}
+              {loading ? 'Finding your research matches...' : 'Find Matches'}
             </button>
+
+            <div className="space-y-4">
+              {matches.map((researcher) => (
+                <div key={researcher.id} className="rounded-2xl border border-[var(--border)] bg-[var(--bg-panel)] p-5">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-semibold text-[var(--text)]">
+                        {researcher.name} <span className="ml-2">{getFlag(researcher.country)}</span>
+                      </h3>
+                      <p className="text-text-secondary">
+                        {[researcher.university, researcher.country].filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-sm ${getScoreTone(researcher.match_score)}`}>
+                      {researcher.match_score}% match
+                    </span>
+                  </div>
+
+                  <p className="mt-4 text-text-secondary">{researcher.research_focus}</p>
+                  <p className="mt-3 text-sm italic text-text-secondary">
+                    Recent paper: {researcher.recent_paper}
+                  </p>
+                  <p className="mt-3 text-sm text-text-secondary">Looking for: {researcher.looking_for}</p>
+
+                  <button
+                    onClick={() => {
+                      setToast(`Connection request sent to ${researcher.name}!`);
+                      window.setTimeout(() => setToast(''), 2000);
+                    }}
+                    className="btn btn-secondary mt-4 inline-flex items-center gap-2"
+                  >
+                    <Send size={16} />
+                    Connect
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {(hasSearched ? searchResults : getFeaturedResearchers()).map((match, index) => (
-              <div key={match.researcher.id} className="card">
-                <div className="flex items-start gap-4">
-                  <div className="p-2 rounded-full bg-background border border-white/10">
-                    <Users size={20} className="text-blue-500" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                          {match.researcher.name}
-                          {match.researcher.verified && <Star size={16} className="text-yellow-500" />}
-                        </h3>
-                        <p className="text-sm text-text-secondary">
-                          {match.researcher.university} • {match.researcher.department || match.researcher.field}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        {match.researcher.github && (
-                          <a 
-                            href={match.researcher.github} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-text-secondary hover:text-white transition-colors"
-                          >
-                            <Github size={18} />
-                          </a>
-                        )}
-                        {match.researcher.linkedin && (
-                          <a 
-                            href={match.researcher.linkedin} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-text-secondary hover:text-white transition-colors"
-                          >
-                            <Linkedin size={18} />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <p className="text-white text-sm mb-3">{match.researcher.bio}</p>
-                    
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {match.researcher.keywords.map((keyword, idx) => (
-                        <span 
-                          key={idx} 
-                          className={`text-xs px-2 py-1 rounded-full border ${
-                            hasSearched && match.matchingKeywords.includes(keyword)
-                              ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
-                              : 'bg-background border-white/10 text-white'
-                          }`}
-                        >
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {hasSearched && (
-                        <span className="inline-block px-3 py-1 text-sm rounded-full bg-blue-500/20 border border-blue-500/50 text-blue-400">
-                          {match.matchScore}% Match
-                        </span>
-                      )}
-                      <button 
-                        onClick={() => handleConnect(match.researcher)}
-                        className="inline-block px-3 py-1 text-sm rounded-full bg-green-500/20 border border-green-500/50 text-green-400 hover:bg-green-500/30 transition-colors"
-                      >
-                        Connect
-                      </button>
-                      <span className="inline-block px-3 py-1 text-sm rounded-full bg-background border border-white/10 text-text-secondary">
-                        {match.researcher.publications} publications
-                      </span>
-                    </div>
-                  </div>
-                </div>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-[var(--text)]">Your research title</label>
+              <input
+                value={researchTitle}
+                onChange={(event) => setResearchTitle(event.target.value)}
+                className="input"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-[var(--text)]">Brief abstract (2-3 sentences)</label>
+              <textarea
+                rows={5}
+                value={researchAbstract}
+                onChange={(event) => setResearchAbstract(event.target.value)}
+                className="input"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-[var(--text)]">Tags (comma separated)</label>
+              <input
+                value={researchTags}
+                onChange={(event) => setResearchTags(event.target.value)}
+                placeholder="e.g. AI, healthcare, NLP"
+                className="input"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-[var(--text)]">Your university</label>
+              <input
+                value={university}
+                onChange={(event) => setUniversity(event.target.value)}
+                className="input"
+              />
+            </div>
+
+            {success ? (
+              <div className="rounded-xl border border-[var(--success)] bg-[#eef8ef] px-4 py-3 text-sm text-[var(--success)]">
+                {success}
               </div>
-            ))}
+            ) : null}
+
+            <button
+              onClick={handlePublish}
+              disabled={
+                !user ||
+                !supabase ||
+                !researchTitle.trim() ||
+                !researchAbstract.trim() ||
+                !researchTags.trim() ||
+                !university.trim() ||
+                publishing
+              }
+              className="btn btn-primary inline-flex items-center gap-2"
+            >
+              {publishing ? <Loader2 size={18} className="animate-spin" /> : null}
+              Publish to EDEN Network
+            </button>
           </div>
         )}
       </section>
 
-      {/* Share Research Modal */}
-      {showShareModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-primary rounded-lg w-full max-w-2xl p-6 border border-white/10 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white">Share Your Research Profile</h3>
-              <button 
-                onClick={() => setShowShareModal(false)}
-                className="p-1 rounded-full hover:bg-background text-text-secondary"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Full Name <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={shareForm.name}
-                    onChange={(e) => setShareForm(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Dr. Jane Smith"
-                    className="input w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Email <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={shareForm.email}
-                    onChange={(e) => setShareForm(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="jane.smith@university.edu"
-                    className="input w-full"
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    University <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={shareForm.university}
-                    onChange={(e) => setShareForm(prev => ({ ...prev, university: e.target.value }))}
-                    placeholder="Stanford University"
-                    className="input w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Field <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={shareForm.field}
-                    onChange={(e) => setShareForm(prev => ({ ...prev, field: e.target.value }))}
-                    placeholder="Computer Science"
-                    className="input w-full"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Research Keywords
-                </label>
-                <input
-                  type="text"
-                  value={shareForm.keywords}
-                  onChange={(e) => setShareForm(prev => ({ ...prev, keywords: e.target.value }))}
-                  placeholder="machine learning, neural networks, AI, deep learning"
-                  className="input w-full"
-                />
-                <p className="text-xs text-text-secondary mt-1">Separate keywords with commas</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Research Bio <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  value={shareForm.bio}
-                  onChange={(e) => setShareForm(prev => ({ ...prev, bio: e.target.value }))}
-                  placeholder="Brief description of your research interests and current work..."
-                  rows={4}
-                  className="input w-full"
-                />
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="isPublic"
-                  checked={shareForm.isPublic}
-                  onChange={(e) => setShareForm(prev => ({ ...prev, isPublic: e.target.checked }))}
-                  className="h-4 w-4"
-                />
-                <label htmlFor="isPublic" className="text-sm text-white">
-                  Make my profile public (others can find and connect with me)
-                </label>
-              </div>
-              
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={handleShareResearch}
-                  className="flex-1 btn btn-primary"
-                >
-                  Save Research Profile
-                </button>
-                <button
-                  onClick={() => setShowShareModal(false)}
-                  className="flex-1 btn btn-secondary"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <SaveResultsBanner />
 
-      {/* Connection Modal */}
-      {connectionModal.isOpen && connectionModal.researcher && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-primary rounded-lg w-full max-w-md p-6 border border-white/10">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Connect with Researcher</h3>
-              <button 
-                onClick={() => setConnectionModal({ researcher: null as any, isOpen: false })}
-                className="p-1 rounded-full hover:bg-background text-text-secondary"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="mb-4">
-              <div className="flex items-center gap-3 p-3 bg-background rounded-lg border border-white/10">
-                <Users size={20} className="text-blue-500" />
-                <div>
-                  <p className="text-white font-medium">{connectionModal.researcher.name}</p>
-                  <p className="text-text-secondary text-sm">{connectionModal.researcher.university}</p>
-                </div>
-              </div>
-            </div>
-            
-            {connectionSuccess ? (
-              <div className="text-center py-6">
-                <Check size={48} className="mx-auto mb-4 text-green-400" />
-                <p className="text-green-400 font-medium">Connection request sent!</p>
-                <p className="text-text-secondary text-sm mt-1">
-                  They will receive your message and can respond directly.
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Message
-                  </label>
-                  <textarea
-                    value={connectionMessage}
-                    onChange={(e) => setConnectionMessage(e.target.value)}
-                    placeholder="Introduce yourself and explain why you'd like to connect..."
-                    rows={6}
-                    className="input w-full"
-                  />
-                </div>
-                
-                <div className="flex gap-3">
-                  <button
-                    onClick={sendConnection}
-                    disabled={isSendingConnection || !connectionMessage.trim()}
-                    className="flex-1 btn btn-primary flex items-center justify-center gap-2"
-                  >
-                    {isSendingConnection ? (
-                      <>
-                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send size={18} />
-                        Send Request
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setConnectionModal({ researcher: null as any, isOpen: false })}
-                    className="flex-1 btn btn-secondary"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+      {toast ? (
+        <div className="fixed bottom-6 right-6 rounded-xl border border-[var(--success)] bg-[#eef8ef] px-4 py-3 text-sm text-[var(--success)] shadow-lg">
+          {toast}
         </div>
-      )}
+      ) : null}
+    </div>
+      </div>
     </div>
   );
-} 
+}

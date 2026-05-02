@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import { JetBrains_Mono, Unbounded, Outfit } from 'next/font/google';
+import { JetBrains_Mono, Unbounded, Outfit, Jost } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import Sidebar, { SidebarProvider } from '../components/layout/sidebar';
-import { getServerSession } from 'next-auth';
 import PageTransition from '@/components/layout/page-transition';
 import Script from 'next/script';
 import { GA_TRACKING_ID } from '@/lib/analytics';
+import { ThemeProvider } from '@/lib/theme-context';
 
 const inter = Inter({ subsets: ['latin'] });
 const jetbrainsMono = JetBrains_Mono({ 
@@ -21,6 +21,10 @@ const unbounded = Unbounded({
 const outfit = Outfit({
   subsets: ['latin'],
   variable: '--font-outfit'
+});
+const jost = Jost({
+  subsets: ['latin'],
+  variable: '--font-jost'
 });
 
 export const metadata: Metadata = {
@@ -48,7 +52,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#000000',
+  themeColor: '#ebebeb',
 };
 
 export default async function RootLayout({
@@ -56,37 +60,43 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession();
-
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} ${jetbrainsMono.variable} ${unbounded.variable} ${outfit.variable} antialiased`}>
-        <Providers session={session}>
-          <SidebarProvider>
-            <div className="min-h-screen">
-              <Sidebar />
-              <main className="transition-all duration-300 p-4 sm:p-6 lg:p-8" style={{ marginLeft: 'var(--sidebar-width, 250px)' }}>
-                <PageTransition>
-                  {children}
-                </PageTransition>
-              </main>
-            </div>
-          </SidebarProvider>
-        </Providers>
-        
-        {/* Google Analytics */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
+    <html lang="en">
+      <body className={`${inter.className} ${jost.variable} ${jetbrainsMono.variable} ${unbounded.variable} ${outfit.variable} antialiased`}>
+        <ThemeProvider>
+          <Providers>
+            <SidebarProvider>
+              <div className="min-h-screen">
+                <Sidebar />
+                <main
+                  className="min-w-0 max-w-full overflow-x-auto transition-all duration-300 p-4 sm:p-6 lg:p-8"
+                  style={{ marginLeft: 'var(--sidebar-width, 250px)' }}
+                >
+                  <PageTransition>
+                    {children}
+                  </PageTransition>
+                </main>
+              </div>
+            </SidebarProvider>
+          </Providers>
+        </ThemeProvider>
+
+        {GA_TRACKING_ID ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', '${GA_TRACKING_ID}');
           `}
-        </Script>
+            </Script>
+          </>
+        ) : null}
       </body>
     </html>
   );

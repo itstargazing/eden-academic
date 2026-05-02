@@ -1,514 +1,373 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import { Volume2, VolumeX, Play, Pause, RotateCcw, Save, Waves, Zap, Wind, TreePine, Flame, Moon } from "lucide-react";
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Flame,
+  Loader2,
+  Moon,
+  Pause,
+  Play,
+  RotateCcw,
+  Save,
+  TreePine,
+  Volume2,
+  Waves,
+  Wind,
+  Zap,
+} from 'lucide-react';
+import SaveResultsBanner from '@/components/auth/save-results-banner';
+import GalaxyAnimation from '@/components/GalaxyAnimation';
+import { useAudioEngine } from '@/hooks/use-audio-engine';
 
-interface SoundConfig {
-  id: string;
-  name: string;
-  icon: React.ComponentType<any>;
-  color: string;
-  file: string;
-  isPlaying: boolean;
-  volume: number;
-}
+const PRESETS = {
+  'Stormy Weather': { Rain: 80, Thunder: 40, Wind: 0, Forest: 0, Fireplace: 0, Midnight: 0 },
+  'Deep Forest': { Rain: 0, Thunder: 0, Wind: 30, Forest: 90, Fireplace: 0, Midnight: 0 },
+  'Cozy Evening': { Rain: 40, Thunder: 0, Wind: 0, Forest: 0, Fireplace: 80, Midnight: 0 },
+  'Peaceful Rain': { Rain: 100, Thunder: 0, Wind: 0, Forest: 0, Fireplace: 0, Midnight: 0 },
+};
 
-interface SoundSettings {
-  [key: string]: {
-    isPlaying: boolean;
-    volume: number;
-  };
+const SOUND_ICONS = {
+  Rain: Waves,
+  Thunder: Zap,
+  Wind,
+  Forest: TreePine,
+  Fireplace: Flame,
+  Midnight: Moon,
+};
+
+function formatTime(seconds: number) {
+  return `${Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 }
 
 export default function FocusSoundscapesPage() {
-  const [sounds, setSounds] = useState<SoundConfig[]>([
-    {
-      id: 'rain',
-      name: 'Rain',
-      icon: Waves,
-      color: 'text-blue-400',
-      file: '/sounds/rain.mp3',
-      isPlaying: false,
-      volume: 50
-    },
-    {
-      id: 'thunder',
-      name: 'Thunder',
-      icon: Zap,
-      color: 'text-purple-400',
-      file: '/sounds/thunder.mp3',
-      isPlaying: false,
-      volume: 50
-    },
-    {
-      id: 'wind',
-      name: 'Wind',
-      icon: Wind,
-      color: 'text-gray-400',
-      file: '/sounds/wind.mp3',
-      isPlaying: false,
-      volume: 50
-    },
-    {
-      id: 'forest',
-      name: 'Forest',
-      icon: TreePine,
-      color: 'text-green-400',
-      file: '/sounds/forest.mp3',
-      isPlaying: false,
-      volume: 50
-    },
-    {
-      id: 'fireplace',
-      name: 'Fireplace',
-      icon: Flame,
-      color: 'text-orange-400',
-      file: '/sounds/fireplace.mp3',
-      isPlaying: false,
-      volume: 50
-    },
-    {
-      id: 'midnight',
-      name: 'Midnight',
-      icon: Moon,
-      color: 'text-indigo-400',
-      file: '/sounds/midnight.mp3',
-      isPlaying: false,
-      volume: 50
-    }
-  ]);
+  const { volumes, playing, setVolume, toggleSound, applyPreset, resetAll, soundNames } = useAudioEngine();
 
-  const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
-  const [isLoaded, setIsLoaded] = useState(true); // Set to true for demo purposes
-  const [savedMix, setSavedMix] = useState<string | null>(null);
-  const [focusTimer, setFocusTimer] = useState<number>(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [seconds, setSeconds] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [targetSeconds, setTargetSeconds] = useState(25 * 60);
+  const [durationChoice, setDurationChoice] = useState<'25' | '45' | '60' | 'custom'>('25');
+  const [customMinutes, setCustomMinutes] = useState('25');
+  const [activePreset, setActivePreset] = useState('');
+  const [saveToast, setSaveToast] = useState('');
 
-  // Initialize audio elements with graceful fallback
   useEffect(() => {
-    const initializeAudio = async () => {
-      sounds.forEach(sound => {
-        const audio = new Audio();
-        audio.src = sound.file;
-        audio.loop = true;
-        audio.volume = sound.volume / 100;
-        audio.preload = 'auto';
-        
-        // Handle audio loading errors gracefully
-        audio.addEventListener('error', () => {
-          console.warn(`Audio file not found: ${sound.file}`);
-        });
-        
-        audioRefs.current[sound.id] = audio;
-      });
+    const savedMix = localStorage.getItem('eden-saved-mix');
 
-      // Restore saved settings
-      restoreSettings();
+    if (!savedMix) {
+      return;
+    }
+
+    const parsed = JSON.parse(savedMix) as {
+      volumes?: Record<string, number>;
     };
 
-    initializeAudio();
-
-    return () => {
-      Object.values(audioRefs.current).forEach(audio => {
-        audio.pause();
-        audio.src = '';
-      });
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, []);
-
-  const restoreSettings = () => {
-    try {
-      const saved = localStorage.getItem('focus-soundscapes-settings');
-      if (saved) {
-        const settings = JSON.parse(saved);
-        setSounds(prevSounds => 
-          prevSounds.map(sound => ({
-            ...sound,
-            isPlaying: settings[sound.id]?.isPlaying || false,
-            volume: settings[sound.id]?.volume || 50
-          }))
-        );
-        setSavedMix('Current Mix');
-      }
-    } catch (error) {
-      console.error('Error restoring settings:', error);
-    }
-  };
-
-  const saveSettings = () => {
-    try {
-      const settings: SoundSettings = {};
-      sounds.forEach(sound => {
-        settings[sound.id] = {
-          isPlaying: sound.isPlaying,
-          volume: sound.volume
-        };
-      });
-      localStorage.setItem('focus-soundscapes-settings', JSON.stringify(settings));
-      setSavedMix('Custom Mix');
-    } catch (error) {
-      console.error('Error saving settings:', error);
-    }
-  };
-
-  const toggleSound = async (soundId: string) => {
-    const audio = audioRefs.current[soundId];
-    if (!audio) return;
-
-    setSounds(prevSounds => 
-      prevSounds.map(sound => {
-        if (sound.id === soundId) {
-          const newIsPlaying = !sound.isPlaying;
-          
-          if (newIsPlaying) {
-            // Try to play audio, fallback to console log if file not found
-            audio.play().catch(error => {
-              console.warn(`Could not play ${sound.name}:`, error.message);
-              console.log(`Playing ${sound.name} (audio file missing)`);
-            });
-          } else {
-            audio.pause();
-          }
-          
-          return { ...sound, isPlaying: newIsPlaying };
-        }
-        return sound;
-      })
-    );
-  };
-
-  const updateVolume = (soundId: string, volume: number) => {
-    const audio = audioRefs.current[soundId];
-    if (audio) {
-      audio.volume = volume / 100;
-    }
-
-    setSounds(prevSounds => 
-      prevSounds.map(sound => 
-        sound.id === soundId ? { ...sound, volume } : sound
-      )
-    );
-  };
-
-  const resetMix = () => {
-    // Stop all currently playing sounds
-    Object.values(audioRefs.current).forEach(audio => {
-      if (audio && !audio.paused) {
-        audio.pause();
-        audio.currentTime = 0;
+    Object.entries(parsed.volumes || {}).forEach(([name, value]) => {
+      if (typeof value === 'number' && soundNames.includes(name as keyof typeof volumes)) {
+        setVolume(name as keyof typeof volumes, value);
       }
     });
+  }, [setVolume, soundNames, volumes]);
 
-    setSounds(prevSounds => 
-      prevSounds.map(sound => ({
-        ...sound,
-        isPlaying: false,
-        volume: 50
-      }))
-    );
-    setSavedMix(null);
-  };
-
-  const getActiveSoundsCount = () => {
-    return sounds.filter(sound => sound.isPlaying).length;
-  };
-
-  const startTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
+  useEffect(() => {
+    if (!timerRunning) {
+      return undefined;
     }
-    
-    setIsTimerRunning(true);
-    timerRef.current = setInterval(() => {
-      setFocusTimer(prev => prev + 1);
-    }, 1000);
-  };
 
-  const stopTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    setIsTimerRunning(false);
-  };
+    const interval = window.setInterval(() => {
+      setSeconds((previous) => {
+        if (previous <= 1) {
+          window.clearInterval(interval);
+          setTimerRunning(false);
 
-  const resetTimer = () => {
-    stopTimer();
-    setFocusTimer(0);
-  };
+          if (Notification.permission === 'granted') {
+            new Notification('EDEN Focus Session Complete! Take a break.');
+          }
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
-  };
+          return 0;
+        }
 
-  const applyPreset = (presetName: string, soundSettings: Array<{id: string, volume: number}>) => {
-    resetMix();
-    setTimeout(() => {
-      soundSettings.forEach(setting => {
-        toggleSound(setting.id);
-        updateVolume(setting.id, setting.volume);
+        return previous - 1;
       });
-      setSavedMix(presetName);
-    }, 100);
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [timerRunning]);
+
+  const soundsPlaying = Object.values(playing).filter(Boolean).length;
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const progress = targetSeconds > 0 ? seconds / targetSeconds : 0;
+  const strokeDashoffset = circumference * (1 - progress);
+
+  const handleDurationSelect = (choice: '25' | '45' | '60' | 'custom') => {
+    setDurationChoice(choice);
+
+    if (choice === '25') {
+      setTargetSeconds(25 * 60);
+      setSeconds(25 * 60);
+      return;
+    }
+
+    if (choice === '45') {
+      setTargetSeconds(45 * 60);
+      setSeconds(45 * 60);
+      return;
+    }
+
+    if (choice === '60') {
+      setTargetSeconds(60 * 60);
+      setSeconds(60 * 60);
+    }
   };
+
+  const handleCustomApply = () => {
+    const minutes = Number(customMinutes);
+
+    if (!minutes || minutes < 1) {
+      return;
+    }
+
+    setTargetSeconds(minutes * 60);
+    setSeconds(minutes * 60);
+  };
+
+  const handleStart = async () => {
+    if (Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+
+    setSeconds(targetSeconds);
+    setTimerRunning(true);
+  };
+
+  const handleSaveMix = () => {
+    localStorage.setItem(
+      'eden-saved-mix',
+      JSON.stringify({
+        volumes,
+        playing,
+      }),
+    );
+
+    setSaveToast('Mix saved!');
+    window.setTimeout(() => setSaveToast(''), 2000);
+  };
+
+  const presetEntries = useMemo(() => Object.entries(PRESETS), []);
 
   return (
-    <div className="space-y-8 feature-page">
+    <div className="split-layout min-h-screen w-full max-w-full">
+      <div className="split-left flex flex-col items-center justify-center overflow-hidden bg-[var(--bg-panel)] p-6 sm:p-10">
+        <GalaxyAnimation label="Focus Soundscapes" />
+      </div>
+      <div className="split-right flex min-h-0 w-full max-w-full min-w-0 flex-col gap-6 bg-[var(--bg)] p-6 sm:p-8 xl:overflow-y-auto">
+    <div className="feature-page min-w-0 max-w-full space-y-8">
       <section className="py-6">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 bg-background border border-white/20 rounded-lg">
-            <Volume2 size={32} className="text-blue-500" />
+        <div className="flex items-center gap-4">
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-3">
+            <Volume2 size={32} className="text-[var(--text)]" />
           </div>
           <div>
             <h1 className="page-header">Focus Soundscapes</h1>
-            <p className="text-text-secondary">Create your custom focus mix</p>
-          </div>
-        </div>
-
-        {/* Status Bar */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between p-4 bg-background border border-white/10 rounded-lg">
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-text-secondary">
-                {getActiveSoundsCount()} sounds playing
-              </span>
-              {savedMix && (
-                <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full">
-                  {savedMix}
-                </span>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={saveSettings}
-                className="btn btn-secondary text-sm flex items-center gap-2"
-              >
-                <Save size={16} />
-                Save Mix
-              </button>
-              <button
-                onClick={resetMix}
-                className="btn btn-secondary text-sm flex items-center gap-2"
-              >
-                <RotateCcw size={16} />
-                Reset
-              </button>
-            </div>
-          </div>
-
-          {/* Focus Timer */}
-          <div className="flex items-center justify-between p-4 bg-background border border-white/10 rounded-lg">
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-text-secondary">Focus Time:</span>
-              <span className="text-lg font-mono text-white">{formatTime(focusTimer)}</span>
-            </div>
-            <div className="flex gap-2">
-              {!isTimerRunning ? (
-                <button
-                  onClick={startTimer}
-                  className="btn btn-secondary text-sm flex items-center gap-2"
-                >
-                  <Play size={16} />
-                  Start
-                </button>
-              ) : (
-                <button
-                  onClick={stopTimer}
-                  className="btn btn-secondary text-sm flex items-center gap-2"
-                >
-                  <Pause size={16} />
-                  Pause
-                </button>
-              )}
-              <button
-                onClick={resetTimer}
-                className="btn btn-secondary text-sm flex items-center gap-2"
-              >
-                <RotateCcw size={16} />
-                Reset
-              </button>
-            </div>
+            <p className="text-text-secondary">Build a study sound mix and run timed focus sessions</p>
           </div>
         </div>
       </section>
 
-      {/* Sound Controls Grid */}
-      <section className="card">
-        <h2 className="section-title">Ambient Sounds</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sounds.map((sound) => {
-            const IconComponent = sound.icon;
-            return (
-              <div
-                key={sound.id}
-                className={`p-6 rounded-lg border transition-all duration-300 ${
-                  sound.isPlaying
-                    ? 'bg-white/5 border-white/20 shadow-lg'
-                    : 'bg-background border-white/10 hover:border-white/20'
-                }`}
-              >
-                {/* Sound Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg bg-background border border-white/10 ${sound.color}`}>
-                      <IconComponent size={20} />
-                    </div>
-                    <h3 className="font-medium text-white">{sound.name}</h3>
-                  </div>
-                  
-                  <button
-                    onClick={() => toggleSound(sound.id)}
-                    className={`p-2 rounded-lg transition-all duration-200 ${
-                      sound.isPlaying
-                        ? 'bg-white/20 text-white hover:bg-white/30'
-                        : 'bg-background border border-white/10 text-text-secondary hover:text-white hover:border-white/20'
-                    }`}
-                  >
-                    {sound.isPlaying ? <Pause size={18} /> : <Play size={18} />}
-                  </button>
-                </div>
+      <section className="grid min-w-0 gap-6 xl:grid-cols-[1.4fr_0.8fr]">
+        <div className="card min-w-0 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="section-title">Ambient Mix</h2>
+            <span className="text-sm text-text-secondary">{soundsPlaying} sounds playing</span>
+          </div>
 
-                {/* Volume Control */}
-                <div className="space-y-3">
+          <div className="grid gap-4 md:grid-cols-2">
+            {soundNames.map((soundName) => {
+              const Icon = SOUND_ICONS[soundName];
+
+              return (
+                <div key={soundName} className="rounded-2xl border border-[var(--border)] bg-[var(--bg-panel)] p-5">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-text-secondary">Volume</span>
-                    <span className="text-sm text-white">{sound.volume}%</span>
+                    <div className="flex items-center gap-3">
+                      <Icon size={20} className="text-[var(--text)]" />
+                      <h3 className="font-semibold text-[var(--text)]">{soundName}</h3>
+                    </div>
+                    <button
+                      onClick={() => void toggleSound(soundName)}
+                      className="rounded-full border border-[var(--border)] p-2 text-[var(--text)] transition hover:bg-[var(--bg-hover)]"
+                    >
+                      {playing[soundName] ? <Pause size={16} /> : <Play size={16} />}
+                    </button>
                   </div>
-                  
-                  <div className="relative">
+
+                  <div className="mt-5 space-y-2">
+                    <div className="flex items-center justify-between text-sm text-text-secondary">
+                      <span>Volume</span>
+                      <span>{volumes[soundName]}</span>
+                    </div>
                     <input
                       type="range"
-                      min="0"
-                      max="100"
-                      value={sound.volume}
-                      onChange={(e) => updateVolume(sound.id, Number(e.target.value))}
-                      className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-background border border-white/10"
-                      style={{
-                        background: `linear-gradient(to right, ${
-                          sound.isPlaying ? '#3b82f6' : '#6b7280'
-                        } 0%, ${
-                          sound.isPlaying ? '#3b82f6' : '#6b7280'
-                        } ${sound.volume}%, #1f2937 ${sound.volume}%, #1f2937 100%)`
-                      }}
+                      min={0}
+                      max={100}
+                      value={volumes[soundName]}
+                      onChange={(event) => setVolume(soundName, Number(event.target.value))}
+                      className="w-full"
                     />
                   </div>
-                  
-                  <div className="flex items-center justify-between text-xs text-text-secondary">
-                    <VolumeX size={12} />
-                    <Volume2 size={12} />
-                  </div>
                 </div>
+              );
+            })}
+          </div>
 
-                {/* Visual Indicator */}
-                {sound.isPlaying && (
-                  <div className="mt-4 flex justify-center">
-                    <div className="flex gap-1">
-                      {[...Array(4)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="w-1 bg-blue-500 rounded-full animate-pulse"
-                          style={{
-                            height: `${Math.max(8, sound.volume / 5)}px`,
-                            animationDelay: `${i * 150}ms`,
-                            animationDuration: '1s'
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-[var(--text)]">Preset mixes</h3>
+            <div className="grid gap-3 md:grid-cols-2">
+              {presetEntries.map(([name, preset]) => (
+                <button
+                  key={name}
+                  onClick={() => {
+                    void applyPreset(preset);
+                    setActivePreset(name);
+                  }}
+                  className={`rounded-2xl border p-4 text-left transition ${
+                    activePreset === name
+                      ? 'border-[var(--text)] bg-[var(--bg-hover)]'
+                      : 'border-[var(--border)] bg-[var(--bg-panel)] hover:bg-[var(--bg-hover)]'
+                  }`}
+                >
+                  <p className="font-semibold text-[var(--text)]">{name}</p>
+                  <p className="mt-2 text-sm text-text-secondary">
+                    Click to load this mix and start the sounds with non-zero volume.
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <button onClick={handleSaveMix} className="btn btn-primary inline-flex items-center gap-2">
+              <Save size={16} />
+              Save Mix
+            </button>
+            <button
+              onClick={() => {
+                resetAll();
+                setActivePreset('');
+              }}
+              className="btn btn-secondary inline-flex items-center gap-2"
+            >
+              <RotateCcw size={16} />
+              Reset
+            </button>
+          </div>
+
+          {saveToast ? (
+            <div className="rounded-xl border border-[var(--success)] bg-[#eef8ef] px-4 py-3 text-sm text-[var(--success)]">
+              {saveToast}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="card min-w-0 space-y-6">
+
+          <div className="flex flex-wrap gap-2">
+            {[
+              ['25', '25 min'],
+              ['45', '45 min'],
+              ['60', '60 min'],
+              ['custom', 'Custom'],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                onClick={() => handleDurationSelect(value as '25' | '45' | '60' | 'custom')}
+                className={`rounded-full border px-4 py-2 text-sm transition ${
+                  durationChoice === value
+                    ? 'border-[var(--text)] bg-[var(--bg-hover)] text-[var(--text)]'
+                    : 'border-[var(--border)] text-[var(--text-dim)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {durationChoice === 'custom' ? (
+            <div className="flex gap-3">
+              <input
+                type="number"
+                min={1}
+                value={customMinutes}
+                onChange={(event) => setCustomMinutes(event.target.value)}
+                className="input"
+                placeholder="Minutes"
+              />
+              <button onClick={handleCustomApply} className="btn btn-secondary">
+                Apply
+              </button>
+            </div>
+          ) : null}
+
+          <div className="flex justify-center">
+            <div className="relative h-44 w-44">
+              <svg className="h-44 w-44 -rotate-90">
+                <circle
+                  cx="88"
+                  cy="88"
+                  r={radius}
+                  stroke="var(--border)"
+                  strokeWidth="10"
+                  fill="none"
+                />
+                <circle
+                  cx="88"
+                  cy="88"
+                  r={radius}
+                  stroke="var(--text-dim)"
+                  strokeWidth="10"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center text-3xl font-semibold text-[var(--text)]">
+                {formatTime(seconds)}
               </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Presets Section */}
-      <section className="card">
-        <h2 className="section-title">Preset Mixes</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button
-            onClick={() => applyPreset('Stormy Weather', [
-              {id: 'rain', volume: 70},
-              {id: 'thunder', volume: 30}
-            ])}
-            className="p-4 rounded-lg bg-background border border-white/10 hover:border-white/20 transition-colors text-left"
-          >
-            <h3 className="font-medium text-white mb-1">🌧️ Stormy Weather</h3>
-            <p className="text-sm text-text-secondary">Rain with distant thunder</p>
-          </button>
-          
-          <button
-            onClick={() => applyPreset('Deep Forest', [
-              {id: 'forest', volume: 60},
-              {id: 'wind', volume: 40}
-            ])}
-            className="p-4 rounded-lg bg-background border border-white/10 hover:border-white/20 transition-colors text-left"
-          >
-            <h3 className="font-medium text-white mb-1">🌲 Deep Forest</h3>
-            <p className="text-sm text-text-secondary">Birds and gentle wind</p>
-          </button>
-          
-          <button
-            onClick={() => applyPreset('Cozy Evening', [
-              {id: 'fireplace', volume: 80},
-              {id: 'rain', volume: 20}
-            ])}
-            className="p-4 rounded-lg bg-background border border-white/10 hover:border-white/20 transition-colors text-left"
-          >
-            <h3 className="font-medium text-white mb-1">🔥 Cozy Evening</h3>
-            <p className="text-sm text-text-secondary">Fireplace with light rain</p>
-          </button>
-          
-          <button
-            onClick={() => applyPreset('Peaceful Rain', [
-              {id: 'rain', volume: 80}
-            ])}
-            className="p-4 rounded-lg bg-background border border-white/10 hover:border-white/20 transition-colors text-left"
-          >
-            <h3 className="font-medium text-white mb-1">☔ Peaceful Rain</h3>
-            <p className="text-sm text-text-secondary">Pure rain sounds</p>
-          </button>
-        </div>
-      </section>
-
-      {/* Tips Section */}
-      <section className="card">
-        <h2 className="section-title">Focus Tips</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-3">
-            <h3 className="font-medium text-white">🎯 Optimal Mixing</h3>
-            <ul className="text-sm text-text-secondary space-y-2">
-              <li>• Keep total volume moderate (2-3 sounds max)</li>
-              <li>• Use thunder sparingly for dramatic effect</li>
-              <li>• Rain + forest creates natural harmony</li>
-              <li>• Lower volumes often work better than higher</li>
-            </ul>
+            </div>
           </div>
-          <div className="space-y-3">
-            <h3 className="font-medium text-white">⏰ Focus Sessions</h3>
-            <ul className="text-sm text-text-secondary space-y-2">
-              <li>• Start with gentle sounds, add complexity</li>
-              <li>• Save your favorite mixes for different tasks</li>
-              <li>• Use consistent mixes to build focus habits</li>
-              <li>• Take breaks every 25-30 minutes</li>
-            </ul>
+
+          <div className="flex flex-wrap gap-3">
+            <button onClick={handleStart} className="btn btn-primary inline-flex items-center gap-2">
+              <Play size={16} />
+              Start
+            </button>
+            <button
+              onClick={() => setTimerRunning((previous) => !previous)}
+              disabled={seconds === 0}
+              className="btn btn-secondary inline-flex items-center gap-2"
+            >
+              {timerRunning ? <Pause size={16} /> : <Loader2 size={16} className="opacity-0" />}
+              {timerRunning ? 'Pause' : 'Resume'}
+            </button>
+            <button
+              onClick={() => {
+                setSeconds(targetSeconds);
+                setTimerRunning(false);
+              }}
+              className="btn btn-secondary inline-flex items-center gap-2"
+            >
+              <RotateCcw size={16} />
+              Reset
+            </button>
           </div>
         </div>
       </section>
+
+      <SaveResultsBanner />
+    </div>
+      </div>
     </div>
   );
-} 
+}
