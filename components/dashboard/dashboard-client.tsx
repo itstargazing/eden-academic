@@ -244,10 +244,10 @@ export default function DashboardClient({ profile, thesis, syllabus }: Dashboard
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+      <section className="grid min-w-0 grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-12">
         <div className="card xl:col-span-7">
-          <div className="flex items-start justify-between gap-4">
-            <div>
+          <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
               <h2 className="section-title">Today's Focus</h2>
               {dashboardContext.profile ? (
                 <div className="mt-3 space-y-1 text-sm text-text-secondary">
@@ -261,7 +261,7 @@ export default function DashboardClient({ profile, thesis, syllabus }: Dashboard
               )}
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-right">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left sm:text-right">
               <p className="text-sm text-text-secondary">Pomodoro</p>
               <p className="text-3xl font-semibold text-[var(--text)]">{formatTimer(pomodoroSeconds)}</p>
             </div>
@@ -326,9 +326,9 @@ export default function DashboardClient({ profile, thesis, syllabus }: Dashboard
               {upcomingDeadlines.map((deadline) => (
                 <div
                   key={`${deadline.name}-${deadline.dateLabel}`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3"
+                  className="flex min-w-0 flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-medium text-[var(--text)]">{deadline.name}</p>
                     <p className="text-sm text-text-secondary">{deadline.dateLabel}</p>
                   </div>
@@ -352,7 +352,7 @@ export default function DashboardClient({ profile, thesis, syllabus }: Dashboard
 
           <div className="mt-4 space-y-3">
             {citations.slice(0, 2).map((citation) => (
-              <div key={citation.id} className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+              <div key={citation.id} className="min-w-0 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
                 <p className="font-medium text-[var(--text)]">{citation.title}</p>
                 <p className="mt-1 text-sm text-text-secondary">{citation.authors}</p>
               </div>
@@ -365,7 +365,7 @@ export default function DashboardClient({ profile, thesis, syllabus }: Dashboard
         </div>
 
         <div className="card xl:col-span-12">
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-start gap-3">
             <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
               <MessageSquare size={20} className="text-emerald-300" />
             </div>
@@ -417,7 +417,7 @@ export default function DashboardClient({ profile, thesis, syllabus }: Dashboard
             ) : null}
           </div>
 
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
             <input
               value={chatInput}
               onChange={(event) => setChatInput(event.target.value)}
@@ -433,7 +433,7 @@ export default function DashboardClient({ profile, thesis, syllabus }: Dashboard
             <button
               onClick={() => void sendMessage(chatInput)}
               disabled={!chatInput.trim() || chatLoading}
-              className="btn btn-primary inline-flex items-center gap-2"
+              className="btn btn-primary inline-flex items-center justify-center gap-2"
             >
               {chatLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
               Send

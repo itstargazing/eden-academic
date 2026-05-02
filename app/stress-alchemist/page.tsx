@@ -362,15 +362,15 @@ export default function StressAlchemistPage() {
                         
                         {isBreathing && (
                           <div className="space-y-4">
-                            <div className="text-4xl font-bold text-[var(--text)]">
+                            <div className="text-2xl font-bold text-[var(--text)] sm:text-4xl">
                               {breathPhase === "inhale" && "Breathe In..."}
                               {breathPhase === "hold" && "Hold..."}
                               {breathPhase === "exhale" && "Breathe Out..."}
                             </div>
-                            <div className="text-6xl font-mono text-[var(--text)]">{breathCount}</div>
+                            <div className="text-5xl font-mono text-[var(--text)] sm:text-6xl">{breathCount}</div>
                             <div className="text-sm text-text-secondary">Cycle {breathCycles + 1} of 5</div>
                             
-                            <div className="flex justify-center gap-2 mt-4">
+                            <div className="flex flex-col justify-center gap-2 mt-4 sm:flex-row">
                               <button onClick={stopBreathing} className="btn btn-secondary">
                                 <Pause size={16} />
                                 Pause

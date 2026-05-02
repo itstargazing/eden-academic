@@ -25,10 +25,17 @@ body {
   color: var(--text);
   font-family: 'JetBrains Mono', monospace;
   -webkit-font-smoothing: antialiased;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+main {
+  min-width: 0;
+  max-width: 100%;
 }
 
 * {
@@ -90,8 +97,26 @@ a:hover {
   font-family: 'JetBrains Mono', monospace;
 }
 
+.feature-page {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.feature-page section,
+.feature-page .grid,
+.feature-page .flex {
+  min-width: 0;
+}
+
 /* Mobile responsive utilities */
 @media (max-width: 768px) {
+  main {
+    margin-left: 0 !important;
+    overflow-x: hidden !important;
+    padding: 0.75rem !important;
+  }
+
   .feature-page .space-y-8 > * + * {
     margin-top: 1.5rem; /* Reduce spacing on mobile */
   }
@@ -149,6 +174,10 @@ a:hover {
   .card {
     padding: 12px;
     border-radius: 4px;
+  }
+
+  main {
+    padding: 0.5rem !important;
   }
   
   .page-header {
@@ -629,7 +658,8 @@ a:hover {
 
   .split-left {
     position: relative !important;
-    height: 220px !important;
+    height: 150px !important;
+    min-height: 150px !important;
     width: 100% !important;
     border-right: none !important;
     border-bottom: 1px solid #b0b0b0 !important;
@@ -638,7 +668,7 @@ a:hover {
   .split-right {
     width: 100% !important;
     min-width: 0 !important;
-    padding: 1.5rem 1.25rem !important;
+    padding: 1rem 0.75rem !important;
   }
 
   nav {

@@ -192,14 +192,14 @@ export default function AccountPage() {
 
 
   return (
-    <div className="feature-page -m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-8 min-h-screen">
+    <div className="feature-page -m-2 p-2 min-h-screen md:-m-6 md:p-6 lg:-m-8 lg:p-8">
       {/* Page Header */}
       <section className="mb-6 lg:mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-6">
           <div className="p-3 bg-[var(--bg-panel)] border border-[var(--border)] rounded-lg">
             <User size={32} className="text-[var(--text)]" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h1 className="page-header">Account Settings</h1>
             <p className="text-text-secondary">Manage your profile and preferences</p>
           </div>
@@ -292,7 +292,7 @@ export default function AccountPage() {
                     <label className="text-sm text-[var(--text-dim)]">Email</label>
                     <div className="flex items-center gap-2 text-[var(--text)]">
                       <Mail size={16} />
-                      <span>{email}</span>
+                    <span className="min-w-0 break-all">{email}</span>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -329,11 +329,11 @@ export default function AccountPage() {
               <div className="space-y-4">
                 {studySessions.slice(0, 3).length > 0 ? (
                   studySessions.slice(0, 3).map((session, i) => (
-                    <div key={i} className="flex items-center gap-4 p-4 bg-[var(--bg-hover)] rounded-lg border border-[var(--border)]">
+                    <div key={i} className="flex min-w-0 items-start gap-3 p-3 bg-[var(--bg-hover)] rounded-lg border border-[var(--border)] sm:items-center sm:gap-4 sm:p-4">
                       <div className="p-2 bg-[var(--bg-panel)] rounded-lg border border-[var(--border)]">
                         <Activity size={20} className="text-[var(--text)]" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <h4 className="text-[var(--text)]">Study Session: {session.topic}</h4>
                         <p className="text-sm text-[var(--text-dim)]">
                           {Math.round(session.duration / 60)} minutes • {new Date(session.date).toLocaleDateString()}

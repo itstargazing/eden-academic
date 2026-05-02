@@ -294,7 +294,7 @@ export default function FocusSoundscapesPage() {
           </div>
 
           {durationChoice === 'custom' ? (
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <input
                 type="number"
                 min={1}
@@ -310,8 +310,8 @@ export default function FocusSoundscapesPage() {
           ) : null}
 
           <div className="flex justify-center">
-            <div className="relative h-44 w-44">
-              <svg className="h-44 w-44 -rotate-90">
+            <div className="relative h-36 w-36 sm:h-44 sm:w-44">
+              <svg className="h-36 w-36 -rotate-90 sm:h-44 sm:w-44" viewBox="0 0 176 176">
                 <circle
                   cx="88"
                   cy="88"
@@ -332,13 +332,13 @@ export default function FocusSoundscapesPage() {
                   strokeDashoffset={strokeDashoffset}
                 />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center text-3xl font-semibold text-[var(--text)]">
+              <div className="absolute inset-0 flex items-center justify-center text-2xl font-semibold text-[var(--text)] sm:text-3xl">
                 {formatTime(seconds)}
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <button onClick={handleStart} className="btn btn-primary inline-flex items-center gap-2">
               <Play size={16} />
               Start

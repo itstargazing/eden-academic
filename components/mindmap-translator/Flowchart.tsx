@@ -188,7 +188,7 @@ export default function Flowchart({ text }: FlowchartProps) {
       </div>
       
       {/* Node type statistics */}
-      <div className="grid grid-cols-4 gap-2 text-xs">
+      <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
         <div className="flex items-center gap-2 p-2 bg-[var(--bg-panel)] border border-[var(--border)] rounded">
           <div className="w-3 h-3 bg-[var(--text-dim)] rounded"></div>
           <span className="text-[var(--text)]">Start: {getNodeTypeCount('start')}</span>
